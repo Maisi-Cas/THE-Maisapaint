@@ -76,6 +76,7 @@ class Maisapaint:
                     ["K", "BORRAR"],
                     ["Q E", "SELECCIONAR TILE"],
                     ["F", "MODO SELECCION"],
+                    ["R", "MODO CAPA"],
                     ["Z", "LIMPIAR DIBUJO"],
                     ["X", "ALTERNAR DIBUJO RAPIDO"],
                     ["I", "OCULTAR CURSOR"],
@@ -90,7 +91,13 @@ class Maisapaint:
                     ["F", "MODO DIBUJO"],
                     ["C", "CUSTOMIZAR CARACTER"],
                     ["Y", "SALIR"]
-                    
+                ],
+                'layer' : [
+                    ["W S", "SELECCIONAR CAPA"],
+                    ["A", "OCULTAR CAPA"],
+                    ["D", "MOSTRAR CAPA"],
+                    ["R", "MODO DIBUJO"],
+                    ["Y", "SALIR"]
                 ]
             }
             self.update()
@@ -103,13 +110,46 @@ class Maisapaint:
                     key = 'draw'
                 case states.States.SELECTCOLOR:
                     key = 'select'
+                case states.States.LAYER:
+                    key = 'layer'
+                    
             
             for i in self.valueDict[key]:
                 self.table.addContet(i[0], i[1])
                 
         def render(self):
             self.table.show()
-                    
+    
+    class FillClass:
+        def __init__(self, position: Vector2, x, colorId):
+            self.text = "tniapasiaM#EHT"
+            self.x = x
+            self.colorList = []
+            self.position = position.copy()
+            self.panel = Panel("", 14, position - 1, Vector2(x, 1))
+            self.index = 0
+            bus.conect('draw-clear', self.clear)
+            
+        def render(self):
+            self.panel.render()
+            counter = 0
+            for i in self.colorList:
+                print2d.coord(self.position.x + counter + 1, self.position.y + 1, graph.BackColors[i[0]]["color"] + graph.ForeColors[15]["color"] + i[1] + graph.Reset.STYLE)
+                counter += 1
+                
+        def add(self, id):
+            self.colorList.insert(0, [id, self.text[self.index]])
+            if len(self.colorList) > self.x:
+                self.colorList.pop()
+                
+            self.index += 1
+            if self.index == len(self.text):
+                self.index = 0
+                
+        def clear(self):
+            self.panel.render(True)
+            self.colorList = []
+            self.index = 0
         
     def __init__(self):
         self.canRun = True
@@ -182,14 +222,23 @@ class Maisapaint:
         )
         self.curse.colorId = self.tileSelector.tiles[self.tileSelector.currenTile].foreColorId
         self.draw = Layer(Vector2(self.mainpanel.margin.x + 1, self.mainpanel.margin.y + 1), self.mainpanel.size.copy())
-        self.layermaster = LayerMaster(
-            11,
+        self.oh = self.FillClass(
             Vector2(
                 self.splashtext.size.x + self.mainpanel.size.x + 6,
                 2
             ),
-            Vector2(21,10)
+            21,
+            14
         )
+        self.layermaster = LayerMaster(
+            11,
+            Vector2(
+                self.splashtext.size.x + self.mainpanel.size.x + 6,
+                5
+            ),
+            Vector2(21,16)
+        )
+        self.layermaster.connect(self.draw)
         
         # Conectar señales
         bus.conect('draw-tile', self.drawTile)
@@ -227,7 +276,9 @@ class Maisapaint:
                         self.tileSelector.render()
                         for i in self.selectors:
                             i.render()
-                        self.draw.render()
+                        self.layermaster.render()
+                        self.layermaster.renderDraws()
+                        self.oh.render()
                         self.layermaster.render()
                         self.curse.render()
                         self.clock.render()
@@ -243,7 +294,25 @@ class Maisapaint:
                         self.tileSelector.render()
                         for i in self.selectors:
                             i.render()
-                        self.draw.render()
+                        self.layermaster.render()
+                        self.layermaster.renderDraws()
+                        self.oh.render()
+                        self.curse.render()
+                        self.clock.render()
+                        states.isRendering = False
+                        
+                        kInput.inputHandler()
+                    case states.States.LAYER:
+                        self.selectorPanel.render()
+                        self.mainpanel.render(True)
+                        self.splashtext.render()
+                        self.keytable.render()
+                        self.tileSelector.render()
+                        for i in self.selectors:
+                            i.render()
+                        self.layermaster.render()
+                        self.layermaster.renderDraws()
+                        self.oh.render()
                         self.curse.render()
                         self.clock.render()
                         states.isRendering = False
@@ -284,11 +353,12 @@ class Maisapaint:
     
     # Agrega un tile a la clase dibujo, tomando el tile del tileSelector y las posision del cusror                
     def drawTile(self):
-        self.draw.addpixel(self.curse.position.copy(), self.tileSelector.tiles[self.tileSelector.currenTile].copy())
+        self.layermaster.addpixel(self.curse.position.copy(), self.tileSelector.tiles[self.tileSelector.currenTile].copy())
+        self.oh.add(self.tileSelector.tiles[self.tileSelector.currenTile].foreColorId)
     
     # Borra owo    
     def eraseTile(self):
-        self.draw.deletePixel(self.curse.position.x, self.curse.position.y)
+        self.layermaster.deletePixel(self.curse.position.x, self.curse.position.y)
     
     # En serio debo explicar que hace esta linea?    
     def stop(self):
@@ -344,6 +414,7 @@ class Maisapaint:
     def changeTile(self):
         #Mucho texto
         self.tileSelector.change(graph.Characters[self.selectors[1].currentId]["character"], self.selectors[0].currentId, self.selectors[2].currentId, self.selectors[3].currentId)
+        self.oh.add(self.tileSelector.tiles[self.tileSelector.currenTile].foreColorId)
         self.curse.colorId = self.tileSelector.tiles[self.tileSelector.currenTile].foreColorId
         bus.emit('state-change', states.States.DRAW) # Cambia el estado a DIBUJO cuando termina
     

@@ -4,7 +4,9 @@ from engine.panel import Panel
 import engine.graph as graph
 from utils.vector2 import Vector2
 from utils.print2d import Print2D as print2d
+import core.states as states
 from typing import Literal
+
 
 class Layer:
     def __init__(self, margin: Vector2 = Vector2(0,0), size: Vector2 = Vector2(64,16)):
@@ -33,9 +35,10 @@ class Layer:
             
     def clear(self):
         self.pixels = {}
- 
+
 class LayerMaster():
     def __init__(self, colorId: int, margin: Vector2, size: Vector2):
+        self.tile = Tile(" ", 15, 15, 1)
         self.colorId = colorId
         self.margin = margin.copy()
         self.size = size.copy()
@@ -47,13 +50,15 @@ class LayerMaster():
         for i in range(self.size.y):
             hatsuneMiku = {}
             hatsuneMiku["name"] = f"CAPA {i}"
-            hatsuneMiku["tile"] = [' ', 15, 15, 1]
             hatsuneMiku["enable"] = True
             hatsuneMiku["draw"] = {}
             self.layers.insert(0, hatsuneMiku)
         
         self.currentId = len(self.layers) - 1
         self.panel = Panel("Capas", self.colorId, self.margin - 1, self.size.copy())
+        
+        bus.conect("lyr-slct", self.select)
+        bus.conect('draw-clear', self.clear)
 
     def connect(self, layer: Layer):
         if isinstance(layer, Layer):
@@ -108,29 +113,49 @@ class LayerMaster():
         return tile
     
     def render(self):
-        self.panel.render()
+        self.panel.render(True)
         colors = {
             'd' : 14,
-            'ds' : 7,
+            'ds' : 8,
             'e' : 12,
-            'es' : 3
+            'es' : 2
         }
         
         key: int
         
         for i in range(len(self.layers)):
+            kasaneTeto = 0
+            
             if i == self.currentId:
                 if self.layers[i]["enable"]:
                     key = colors["es"]
                 else:
                     key = colors["ds"]
+                if states.current == states.States.LAYER:
+                    kasaneTeto = 1
             else:
                 if self.layers[i]["enable"]:
                     key = colors["e"]
                 else:
                     key = colors["d"]
+            tile = self.count(i)
+            self.tile.character, self.tile.foreColorId, self.tile.backColorId, self.tile.styleId = tile[0], tile[1], tile[2], tile[3]
+            print2d.coord(self.margin.x + 1 + kasaneTeto, self.margin.y + 1 + i, graph.ForeColors[key]["color"] + f"[{self.tile}{graph.ForeColors[key]["color"]}][{self.layers[i]["name"][:self.size.x - (3 + kasaneTeto + 2)]}]")
             
-            print2d.coord(self.margin.x + 1, self.margin.y + i + 1, graph.ForeColors[key]["color"] + ("-" * self.size.x) + graph.Reset.STYLE)
-            print2d.coord(self.margin.x + 1, self.margin.y + i + 1, graph.ForeColors[key]["color"] + f"[#]{self.layers[i]["name"][:self.size.x - 3]}")
-                
-        
+    def renderDraws(self):
+        for i in range(len(self.layers) - 1, -1, -1):
+            if len(self.layers[i]["draw"]) > 0 and self.layers[i]["enable"]:
+                self.layer.pixels = self.layers[i]["draw"].copy()
+                self.layer.render()
+    
+    def addpixel(self, position: Vector2, tile: Tile):
+        if self.layers[self.currentId]["enable"]:
+            self.layers[self.currentId]["draw"][(position.x, position.y)] = (tile.foreColorId, tile.backColorId, tile.styleId, tile.character)
+    
+    def deletePixel(self, x, y):
+        if (x, y) in self.layers[self.currentId]["draw"]:
+            del self.layers[self.currentId]["draw"][(x, y)]
+            
+    def clear(self):
+        self.layers[self.currentId]["draw"] = {}
+            

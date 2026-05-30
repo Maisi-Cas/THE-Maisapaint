@@ -23,7 +23,7 @@ class TileSelector:
         self.tiles = [Tile(graph.Characters[rand.randint(0, len(graph.ForeColors) - 1)]["character"], x if x < len(graph.ForeColors) else x - (x + (1 // len(graph.ForeColors)) * len(graph.ForeColors)) , 15, 1) for x in range(self.count)]
         self.panel = Panel(
             'Selector de Tiles',
-            2,
+            self.tiles[self.currenTile].foreColorId,
             self.position - 2,
             Vector2(self.count * 3, 1)
         )
@@ -31,6 +31,11 @@ class TileSelector:
         
         
     def render(self):
+        self.panel.colorId = self.tiles[self.currenTile].foreColorId
+        
+        if self.panel.colorId == 15:
+            self.panel.colorId = 12
+        
         for i in range(self.count):
             print2d.coord(self.position.x + (i * 3), self.position.y, f"[{self.tiles[i]}]")
         

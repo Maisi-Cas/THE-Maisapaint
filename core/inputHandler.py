@@ -20,7 +20,8 @@ class Handlers:
                 'alt-left': lambda: bus.emit('slct-tile', 'l'),
                 'alt-right': lambda: bus.emit('slct-tile', 'r'),
                 'extra-1': lambda: bus.emit('draw-clear'),
-                'extra-2': lambda: bus.emit('fast-mode')                                                                                 
+                'extra-2': lambda: bus.emit('fast-mode'),
+                "toogle-2": lambda: bus.emit('state-change', states.States.LAYER)                                                                                 
             },
             'select' : {
                 'toogle': lambda: bus.emit('state-change', states.States.DRAW),
@@ -33,6 +34,14 @@ class Handlers:
                 'alt-left': lambda: bus.emit('slct-tile', 'l'),
                 'alt-right': lambda: bus.emit('slct-tile', 'r'),
                 'accept': lambda: bus.emit('slct-tile-change')
+            },
+            'layer' : {
+                'up' : lambda: bus.emit('lyr-slct', 'u'),
+                'down' : lambda: bus.emit('lyr-slct', 'd'),
+                'left' : lambda: bus.emit('lyr-slct', 'l'),
+                'right' : lambda: bus.emit('lyr-slct', 'r'),
+                'toogle-2' : lambda: bus.emit('state-change', states.States.DRAW),
+                'exit' : lambda: bus.emit('mp-stop'),
             }
         }
         
@@ -46,6 +55,9 @@ class Handlers:
                 key = 'draw'
             case states.States.SELECTCOLOR:
                 key = 'select'
+            case states.States.LAYER:
+                key = 'layer'
+            
         if action in self.handlers[key]:
             self.handlers[key][action]()
         bus.emit('clock-visible', True)
