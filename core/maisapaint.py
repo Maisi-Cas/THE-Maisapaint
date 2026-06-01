@@ -94,8 +94,7 @@ class Maisapaint:
                 ],
                 'layer' : [
                     ["W S", "SELECCIONAR CAPA"],
-                    ["A", "OCULTAR CAPA"],
-                    ["D", "MOSTRAR CAPA"],
+                    ["A D", "OCULTAR Y MOSTRAR CAPA"],
                     ["R", "MODO DIBUJO"],
                     ["Y", "SALIR"]
                 ]

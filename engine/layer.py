@@ -78,9 +78,9 @@ class LayerMaster():
                 else:
                     self.currentId = 0
             case 'l': 
-                self.layers[self.currentId]["enable"] = False
+                self.layers[self.currentId]["enable"] = not self.layers[self.currentId]["enable"]
             case 'r': 
-                self.layers[self.currentId]["enable"] = True
+                self.layers[self.currentId]["enable"] = not self.layers[self.currentId]["enable"]
         
     def count(self, index):
         counter = {
@@ -116,31 +116,28 @@ class LayerMaster():
         self.panel.render(True)
         colors = {
             'd' : 14,
-            'ds' : 8,
-            'e' : 12,
-            'es' : 2
+            'e' : 12
         }
-        
+        ses : str = ''
         key: int
         
         for i in range(len(self.layers)):
             kasaneTeto = 0
             
             if i == self.currentId:
-                if self.layers[i]["enable"]:
-                    key = colors["es"]
-                else:
-                    key = colors["ds"]
+                ses = graph.BackColors[self.colorId]['color']
                 if states.current == states.States.LAYER:
                     kasaneTeto = 1
+            
+            if self.layers[i]["enable"]:
+                key = colors["e"]
             else:
-                if self.layers[i]["enable"]:
-                    key = colors["e"]
-                else:
-                    key = colors["d"]
+                key = colors["d"]
             tile = self.count(i)
             self.tile.character, self.tile.foreColorId, self.tile.backColorId, self.tile.styleId = tile[0], tile[1], tile[2], tile[3]
-            print2d.coord(self.margin.x + 1 + kasaneTeto, self.margin.y + 1 + i, graph.ForeColors[key]["color"] + f"[{self.tile}{graph.ForeColors[key]["color"]}][{self.layers[i]["name"][:self.size.x - (3 + kasaneTeto + 2)]}]")
+            print2d.coord(self.margin.x + 1, self.margin.y + 1 + i, ses + (" " * self.size.x) + graph.Reset.STYLE)
+            print2d.coord(self.margin.x + 1 + kasaneTeto, self.margin.y + 1 + i, graph.ForeColors[key]["color"] + f"[{self.tile}{graph.ForeColors[key]["color"]}]{ses}[{self.layers[i]["name"][:self.size.x - (3 + kasaneTeto + 2)]}]{graph.Reset.STYLE}")
+            ses = ''
             
     def renderDraws(self):
         for i in range(len(self.layers) - 1, -1, -1):
