@@ -58,13 +58,14 @@ class LayerMaster():
         self.panel = Panel("Capas", self.colorId, self.margin - 1, self.size.copy())
         
         bus.conect("lyr-slct", self.select)
-        bus.conect('draw-clear', self.clear)
 
     def connect(self, layer: Layer):
         if isinstance(layer, Layer):
             self.layer = layer
 
     def select(self, direction: Literal['u', 'd', 'l', 'r'] = 'r'):
+        states.currentFlag = states.Flags.CLAYER if direction in ['u', 'd'] else states.Flags.ULAYER
+        
         match direction:
             case 'u':
                 if self.currentId != 0:
@@ -140,10 +141,15 @@ class LayerMaster():
             ses = ''
             
     def renderDraws(self):
+        # Este codigo en honor a Maxi
+        self.layer.pixels.clear()
+        
         for i in range(len(self.layers) - 1, -1, -1):
             if len(self.layers[i]["draw"]) > 0 and self.layers[i]["enable"]:
-                self.layer.pixels = self.layers[i]["draw"].copy()
-                self.layer.render()
+                for (x, y), (a,b,c,d) in self.layers[i]["draw"].items():
+                    self.layer.pixels[(x, y)] = (a, b, c, d)
+                    
+        self.layer.render()
     
     def addpixel(self, position: Vector2, tile: Tile):
         if self.layers[self.currentId]["enable"]:
@@ -155,4 +161,5 @@ class LayerMaster():
             
     def clear(self):
         self.layers[self.currentId]["draw"] = {}
-            
+        
+        

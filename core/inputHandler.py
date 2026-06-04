@@ -42,6 +42,8 @@ class Handlers:
                 'right' : lambda: bus.emit('lyr-slct', 'r'),
                 'toogle-2' : lambda: bus.emit('state-change', states.States.DRAW),
                 'exit' : lambda: bus.emit('mp-stop'),
+                'accept' : lambda: bus.emit('state-change', states.States.DRAW),
+                'extra-3' : lambda: bus.emit('rnme-layer')
             }
         }
         
@@ -60,6 +62,8 @@ class Handlers:
             
         if action in self.handlers[key]:
             self.handlers[key][action]()
+        else:
+            states.currentFlag = states.Flags.PASS
         bus.emit('clock-visible', True)
             
     def getKey(self, value: str = 'accept') -> str:
@@ -67,7 +71,7 @@ class Handlers:
             if j == value:
                 return i
 
-class _Input:
+class Input:
     
     def __init__(self):
         #Esto es para la lectura del JSON
@@ -83,5 +87,5 @@ class _Input:
         except UnicodeDecodeError:
             pass
         
-_kInput = _Input()
+_kInput = Input()
 kInput = Handlers()

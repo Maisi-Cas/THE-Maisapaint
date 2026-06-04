@@ -16,6 +16,7 @@ from engine.curse import Curse
 from engine.panel import Panel
 from engine.layer import Layer, LayerMaster
 from engine.table import Table
+from engine.msgBox import MsgBox
 
 # Clases del nucleo
 from core.emitBus import bus
@@ -41,12 +42,16 @@ class Maisapaint:
         def __init__(self, position: Vector2, size: Vector2):
             
             print2d.clear()
-            chargeString = 'Cargando...'
+            chargeString = ['The#MSPaint por Maisi','Hecho en Python','Cargando...']
             time.sleep(0.01)
-            for i in range(len(chargeString)):
-                randNum = rand.randint(0, len(graph.ForeColors) - 2)
-                print(graph.ForeColors[randNum]['color'] + chargeString [i] + graph.Reset.STYLE, end='', flush=True)                
-                time.sleep(0.01)
+            for i in chargeString:
+                for j in range(len(i)):
+                    randNum = rand.randint(0, len(graph.ForeColors) - 2)
+                    print(graph.ForeColors[randNum]['color'] + i[j] + graph.Reset.STYLE, end='', flush=True)                
+                    time.sleep(0.01)
+                print()
+            time.sleep(0.7)                                                    
+            
                 
             self.postion = position.copy()
             self.size = size.copy()
@@ -95,7 +100,8 @@ class Maisapaint:
                 'layer' : [
                     ["W S", "SELECCIONAR CAPA"],
                     ["A D", "OCULTAR Y MOSTRAR CAPA"],
-                    ["R", "MODO DIBUJO"],
+                    ["R J", "MODO DIBUJO"],
+                    ["C", "RENOMBRAR CAPA"],
                     ["Y", "SALIR"]
                 ]
             }
@@ -230,7 +236,7 @@ class Maisapaint:
             14
         )
         self.layermaster = LayerMaster(
-            11,
+            2,
             Vector2(
                 self.splashtext.size.x + self.mainpanel.size.x + 6,
                 5
@@ -238,6 +244,8 @@ class Maisapaint:
             Vector2(21,16)
         )
         self.layermaster.connect(self.draw)
+        self.msgBox = MsgBox(self.mainpanel.margin + 2, 1)
+        self.lrmsgBox = MsgBox(Vector2(self.layermaster.margin.x - 20, self.layermaster.margin.y),7)
         
         # Conectar señales
         bus.conect('draw-tile', self.drawTile)
@@ -251,77 +259,174 @@ class Maisapaint:
         bus.conect('slct-tile', self.updateCurse)
         bus.conect('move-curse', self.fastDraw)
         bus.conect('fast-mode', self.fastDrawModeToogle)
+        bus.conect('rnme-layer', self.renameLayer)
+        bus.conect('draw-clear', self.clear)
 
     # region Run  
     # Funcion que corre el programa    
     def run(self):
         self.showCMDCurse(False) # Esto en teoria elimina el cursor del cmd, me sorprende que funcione, debo hacer la version Show
         print2d.clear() # Escribe cls en CMD, es eso basicamente
+        
+        self.superPanel.render()
+        self.renderTitle(Vector2(2,2))
+        msvcrt.getch()
+        self.superPanel.render(True)
+        
         while(self.canRun):
             
             states.isRendering = True #Esta cochinada la hice por que el reloj me jodia el ui
-            self.superPanel.render() #Renderiza el canvas padre siempre, sin importar el estado
             
             if not states.clockIsRendering:
-                # LA MAQUINA (de estados)
-                match states.current:
-                    case states.States.DRAW:
-                        # Solo renderiza
-                        
-                        self.selectorPanel.render()
-                        self.keytable.render()
-                        self.mainpanel.render(True) # Cuando le pones true al render de un panel, este hace un limpiado de pantalla local
-                        self.splashtext.render()
-                        self.tileSelector.render()
-                        for i in self.selectors:
-                            i.render()
-                        self.layermaster.render()
-                        self.layermaster.renderDraws()
-                        self.oh.render()
-                        self.layermaster.render()
-                        self.curse.render()
-                        self.clock.render()
-                        
-                        states.isRendering = False # El tema del condenado reloj de los demonios
-                        kInput.inputHandler() # Entrada, aca le pones la tecla y reacciona
-                        
-                    case states.States.SELECTCOLOR: # Lo mismo que el otro caso de arriba pero con cosillas cambiadas
-                        self.selectorPanel.render()
-                        self.mainpanel.render()
-                        self.splashtext.render()
-                        self.keytable.render()
-                        self.tileSelector.render()
-                        for i in self.selectors:
-                            i.render()
-                        self.layermaster.render()
-                        self.layermaster.renderDraws()
-                        self.oh.render()
-                        self.curse.render()
-                        self.clock.render()
-                        states.isRendering = False
-                        
-                        kInput.inputHandler()
-                    case states.States.LAYER:
-                        self.selectorPanel.render()
-                        self.mainpanel.render(True)
-                        self.splashtext.render()
-                        self.keytable.render()
-                        self.tileSelector.render()
-                        for i in self.selectors:
-                            i.render()
-                        self.layermaster.render()
-                        self.layermaster.renderDraws()
-                        self.oh.render()
-                        self.curse.render()
-                        self.clock.render()
-                        states.isRendering = False
-                        
-                        kInput.inputHandler()
+                #Renderizar
+                self.renderInterface()
+                
+                states.isRendering = False
+                states.currentFlag = states.Flags.NONE
+                kInput.inputHandler()
+        
+        self.superPanel.title = "BYE BYE ;)"
+        self.superPanel.render(True)
+        self.renderTitle(Vector2(2,2))
+        self.superPanel.render()
+        self.showCMDCurse(True)
+        
+    # endregion
+    
+    # region Renders
+    def renderInterface(self):
+        match states.current:
+            case states.States.DRAW:
+                self.renderDraw()
+            case states.States.SELECTCOLOR:
+                self.renderSelection()
+            case states.States.LAYER:
+                self.renderLayer()
+    
+    def renderDraw(self):
+        match states.currentFlag:
+            case states.Flags.NONE:
+                self.superPanel.render()
+                self.selectorPanel.render()
+                self.keytable.render()
+                for i in self.selectors:
+                    i.render()
+                # Cuando le pones true al render de un panel, este hace un limpiado de pantalla local
+                self.splashtext.render()
+                self.tileSelector.render()
+                self.layermaster.render() 
+                self.mainpanel.render(True)
+                self.layermaster.renderDraws()
+                self.oh.render()
+                self.curse.render()
+                self.clock.render()
+                
+            case states.Flags.DRAW:
+                self.oh.render()
+                self.mainpanel.render(True)
+                self.layermaster.render() 
+                self.layermaster.renderDraws()
+                self.curse.render()
+                self.clock.render()
+            
+            case states.Flags.MOVE:
+                self.mainpanel.render(True)
+                self.layermaster.renderDraws() 
+                self.curse.render()
+                self.clock.render()
+            
+            case states.Flags.CTILE:
+                self.tileSelector.render()
+                self.curse.render()
+                self.clock.render()
+            
+            case states.Flags.ULAYER:
+                self.mainpanel.render(True)
+                self.layermaster.render()
+                self.layermaster.renderDraws()
+                self.curse.render()
+                self.clock.render()
+            
+            case states.Flags.PASS:
+                pass
+
+    def renderSelection(self):
+        match states.currentFlag:
+            case states.Flags.NONE:
+                self.superPanel.render()
+                self.selectorPanel.render()
+                self.mainpanel.render()
+                self.splashtext.render()
+                self.keytable.render()
+                self.tileSelector.render()
+                for i in self.selectors:
+                    i.render()
+                self.layermaster.render()
+                self.layermaster.renderDraws()
+                self.oh.render()
+                self.curse.render()
+                self.clock.render()
+            
+            case states.Flags.SELECTION:
+                self.selectorPanel.render()
+                for i in self.selectors:
+                    i.render()
+                self.clock.render()
+            
+            case states.Flags.CTILE:
+                self.tileSelector.render()
+                self.curse.render()
+                self.clock.render()
+            
+            case states.Flags.PASS:
+                pass
+    
+    def renderLayer(self):
+        match states.currentFlag:
+            case states.Flags.NONE:
+                self.superPanel.render()
+                self.selectorPanel.render()
+                self.mainpanel.render(True)
+                self.splashtext.render()
+                self.keytable.render()
+                self.tileSelector.render()
+                for i in self.selectors:
+                    i.render()
+                self.layermaster.render()
+                self.layermaster.renderDraws()
+                self.oh.render()
+                self.clock.render() 
+
+            case states.Flags.CLAYER:
+                self.layermaster.render()
+                self.clock.render()
+                
+            case states.Flags.ULAYER:
+                self.mainpanel.render(True)
+                self.layermaster.render()
+                self.layermaster.renderDraws()
+                self.clock.render()
+                
+    def renderTitle(self, position: Vector2):
+        "0 5 8 2 1 4 7 9 10 11 12"
+        
+        title = [
+            f'┌───────────┬─┬─┐┌─────┬─────────────────────┐  ┌────┐',
+            f'└─┐ ┌─┬─┬───┘   └┤     │ ──┬───┬───┬─┬───┐ ┌─┘┌─┴─── ├─┐', 
+            f'  │ │   │ ──  + ─┤ │ │ ├─┐ │ + │ - │ │   │ │  │ ┌────┘ │',
+            f'  │ │ │ │ ──┐   ┌┴─┴─┴─┴─┘ │ ┌─┤ │ │ │ │ │ │  └─┤ ───┬─┘',
+            f'  └─┴─┴─┴───┴─┴─┴──────────┤ │ └─┴─┴─┴─┴─┴─┘    └────┘',
+            f'                           └─┘'
+        ]
+        print(graph.ForeColors[self.superPanel.colorId]['color'])
+        for i in range(len(title)):
+            print2d.coord(position.x, position.y + i, title[i])
+        print(graph.Reset.STYLE)
                     
     # endregion
     # Esta cosa es lo que permite navegar por los selectores
     def select(self, direction: Literal['u','d','l','r'] = 'r'):
-        
+        states.currentFlag = states.Flags.SELECTION
         for i in self.selectors: #Deja a todos los selctores de color blanco
             i.colorId = 12
         
@@ -350,8 +455,9 @@ class Maisapaint:
         self.selectorPanelTile = Tile(graph.Characters[self.selectors[1].currentId]["character"], self.selectors[0].currentId, self.selectors[2].currentId, self.selectors[3].currentId)
         self.selectorPanel.title = f"[{self.selectorPanelTile}{graph.ForeColors[self.selectorPanel.colorId]['color']}]Selectores"
     
-    # Agrega un tile a la clase dibujo, tomando el tile del tileSelector y las posision del cusror                
+    # Agrega un tile a la clase layermaster, tomando el tile del tileSelector y las posision del cusror                
     def drawTile(self):
+        states.currentFlag = states.Flags.DRAW
         self.layermaster.addpixel(self.curse.position.copy(), self.tileSelector.tiles[self.tileSelector.currenTile].copy())
         self.oh.add(self.tileSelector.tiles[self.tileSelector.currenTile].foreColorId)
     
@@ -361,10 +467,12 @@ class Maisapaint:
     
     # En serio debo explicar que hace esta linea?    
     def stop(self):
-        self.canRun = False
+        
+        self.canRun = not self.msgBox.getYesNo('Confirmar', 'Esta seguro de querer salir de THE#MSPaint?')
 
     # Cuando se cambia el estado, configura unas cositas
     def changeState(self, state: states.States.DRAW):
+        states.currentFlag = states.Flags.NONE
         print2d.clear()
         states.current = state
         
@@ -432,3 +540,18 @@ class Maisapaint:
     def fastDraw(self, *args, **kwargs):
         if self.fastDrawMode:
             self.drawTile()
+            
+    def renameLayer(self):
+        states.isRendering = True
+        self.showCMDCurse(True)
+        self.lrmsgBox.position = Vector2(self.layermaster.margin.x - 22, self.layermaster.margin.y + self.layermaster.currentId - 3)
+        makuka = self.lrmsgBox.getText('Renombrar capa', f'Ingrese un nuevo nombre para [{self.layermaster.layers[self.layermaster.currentId]["name"]}]',18)
+        if makuka['state']:
+            self.layermaster.layers[self.layermaster.currentId]['name'] = makuka['string']
+            
+        self.showCMDCurse(False)
+        states.isRendering= False
+        
+    def clear(self):
+        if self.msgBox.getYesNo('Limpiar Capa', 'Estás seguro de querer limpar la capa actual?'):
+            self.layermaster.clear()

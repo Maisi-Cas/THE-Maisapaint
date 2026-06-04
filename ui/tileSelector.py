@@ -6,6 +6,7 @@ from engine.tile import Tile
 from typing import Literal
 from core.emitBus import bus
 import random as rand
+import core.states as states
 
 class TileSelector:
     def __init__(self, position: Vector2, count: int):
@@ -47,6 +48,7 @@ class TileSelector:
         self.tiles[self.currenTile] = Tile(characterId, foreColorId, backColorId, styleId)
         
     def moveTile(self, direction: Literal['l','r'] = 'r'):
+        states.currentFlag = states.Flags.CTILE
         match direction:
             case 'l':
                 if self.currenTile != 0:

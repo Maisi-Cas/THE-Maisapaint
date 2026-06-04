@@ -4,6 +4,7 @@ import engine.graph as graph
 from utils.vector2 import Vector2
 from utils.print2d import Print2D as print2d
 from typing import Literal
+import core.states as states
 
 class Curse:
     def __init__(
@@ -36,6 +37,7 @@ class Curse:
         )
     
     def move(self, direction: Literal['u','d','l','r'] = 'r'):
+        states.currentFlag = states.Flags.MOVE
         match direction:
             case 'u':
                 self.position.y -= 1 if self.position.y > 1 else 0

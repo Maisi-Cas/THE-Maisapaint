@@ -45,7 +45,7 @@ class Table:
             contColor[x % len(contColor)]
             for x in range(self.cols)
         ]
-   
+
     def addContet(self, *content):
         if len(content) >= self.cols:
             self._content.append([content[x] for x in range(self.cols)])
@@ -118,7 +118,7 @@ class Table:
         
         
         
-                   
+        
 """"
 Diagrama de como funciona
 -------------------------
