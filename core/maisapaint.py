@@ -8,6 +8,7 @@ import os
 import json
 import msvcrt
 import time
+import psutil
 
 # Clases del motor
 import engine.graph as graph
@@ -85,6 +86,7 @@ class Maisapaint:
                     ["Z", "LIMPIAR DIBUJO"],
                     ["X", "ALTERNAR DIBUJO RAPIDO"],
                     ["I", "OCULTAR CURSOR"],
+                    ["V", "CUBETA"],
                     ["Y", "SALIR"]
                     
                 ],
@@ -93,6 +95,7 @@ class Maisapaint:
                     ["A D", "CAMBIAR VALOR"],
                     ["J", "AÑADIR TILE"],
                     ["Q E", "SELECCIONAR TILE"],
+                    ["R", "MODO CAPA"],
                     ["F", "MODO DIBUJO"],
                     ["C", "CUSTOMIZAR CARACTER"],
                     ["Y", "SALIR"]
@@ -101,6 +104,7 @@ class Maisapaint:
                     ["W S", "SELECCIONAR CAPA"],
                     ["A D", "OCULTAR Y MOSTRAR CAPA"],
                     ["R J", "MODO DIBUJO"],
+                    ["F", "MODO CAPA"],
                     ["C", "RENOMBRAR CAPA"],
                     ["Y", "SALIR"]
                 ]
@@ -155,8 +159,35 @@ class Maisapaint:
             self.panel.render(True)
             self.colorList = []
             self.index = 0
+    
+    class Info:
+        def __init__(self, position: Vector2, ancho: int, colorId: int, father):
+            self.father = father
+            self.position = position.copy()
+            self.size = Vector2(ancho, 9)
+            self.colorId = colorId
+            self.panel = Panel('Info', self.colorId, self.position.copy(), self.size.copy())
         
+        def render(self):
+            process = psutil.Process(os.getpid())
+            memoria = process.memory_info().rss
+
+            self.panel.render(True)
+            strings = [
+                f'CURSOR : ({graph.ForeColors[2]['color']}{self.father.curse.position.x}{graph.Reset.STYLE}, {graph.ForeColors[5]['color']}{self.father.curse.position.y}{graph.Reset.STYLE})',
+                f'TILE : [{self.father.tileSelector.tiles[self.father.tileSelector.currenTile].getString()}]',
+                f'T. DIBUJADOS : {graph.ForeColors[self.father.layermaster.countTiles() % 15]['color']}{self.father.layermaster.countTiles()}{graph.Reset.STYLE}',
+                f'CAPA : {graph.ForeColors[3]['color']}{self.father.layermaster.layers[self.father.layermaster.currentId]["name"]}{graph.Reset.STYLE}',
+                f'MODO : {graph.ForeColors[7]['color']}{states.current.name}{graph.Reset.STYLE}',
+                f'V : {graph.ForeColors[9]['color']}{self.father.version}{graph.Reset.STYLE}',
+                f'MEMORIA : {graph.ForeColors[5]['color']}{round(memoria/(1024 ** 2),4)} MB{graph.Reset.STYLE}'
+                
+            ]
+            for i in range(len(strings)):
+                print2d.coord(self.position.x + 2, self.position.y + 2 + i, strings[i])
+    
     def __init__(self):
+        self.version = '(Alpha) #1'
         self.canRun = True
         self.fastDrawMode = False
         # Declaracion de los Paneles/Frames
@@ -241,11 +272,18 @@ class Maisapaint:
                 self.splashtext.size.x + self.mainpanel.size.x + 6,
                 5
             ),
-            Vector2(21,16)
+            Vector2(21,13)
         )
         self.layermaster.connect(self.draw)
-        self.msgBox = MsgBox(self.mainpanel.margin + 2, 1)
+        self.msgBox = MsgBox(self.mainpanel.margin + 2, 0)
+        self.cMsgBox = MsgBox(Vector2(self.mainpanel.margin.x, self.mainpanel.margin.y + 5), 0)
         self.lrmsgBox = MsgBox(Vector2(self.layermaster.margin.x - 20, self.layermaster.margin.y),7)
+        self.info = self.Info(
+            Vector2(self.selectorPanel.margin.x + self.selectorPanel.size.x + 2, self.layermaster.size.y + self.layermaster.margin.y + 1),
+            self.layermaster.size.x,
+            10,
+            self
+        )
         
         # Conectar señales
         bus.conect('draw-tile', self.drawTile)
@@ -261,6 +299,7 @@ class Maisapaint:
         bus.conect('fast-mode', self.fastDrawModeToogle)
         bus.conect('rnme-layer', self.renameLayer)
         bus.conect('draw-clear', self.clear)
+        bus.conect('fill-layer', self.fill)
 
     # region Run  
     # Funcion que corre el programa    
@@ -280,6 +319,7 @@ class Maisapaint:
             if not states.clockIsRendering:
                 #Renderizar
                 self.renderInterface()
+                self.info.render()
                 
                 states.isRendering = False
                 states.currentFlag = states.Flags.NONE
@@ -509,7 +549,15 @@ class Maisapaint:
     
     # Esta cosa se activa cuando customizas el caracter                    
     def custimizeChar(self):
-        self.selectors[1].customize() # Customización
+        self.cMsgBox.position = Vector2(self.mainpanel.margin.x + self.selectors[1].currentId, self.mainpanel.margin.y + 5)
+        if graph.Characters[self.selectors[1].currentId]['customizable']:
+            self.cMsgBox.colorId = 11
+            sanseeeee = self.cMsgBox.getText("Customizar", f"Ingresa el caracter con el que vas a reemplazar [{graph.Characters[self.selectors[1].currentId]['character']}]", 1)
+            if sanseeeee['state']:
+                graph.Characters[self.selectors[1].currentId]['character'] = sanseeeee['string']
+        else:
+            self.cMsgBox.colorId = 0
+            self.cMsgBox.get("UPS...", "Este caracter no es customizable, los caracteres customizables se mostraran de color magenta")
         # Actualizar el selectorPanel ozy
         self.selectorPanelTile = Tile(graph.Characters[self.selectors[1].currentId]["character"], self.selectors[0].currentId, self.selectors[2].currentId, 1)
         self.selectorPanel.title = f"[{self.selectorPanelTile}{graph.ForeColors[self.selectorPanel.colorId]['color']}]Selectores"
@@ -555,3 +603,6 @@ class Maisapaint:
     def clear(self):
         if self.msgBox.getYesNo('Limpiar Capa', 'Estás seguro de querer limpar la capa actual?'):
             self.layermaster.clear()
+            
+    def fill(self):
+        self.layermaster.fill(self.curse.position.copy(), self.tileSelector.tiles[self.tileSelector.currenTile].copy())

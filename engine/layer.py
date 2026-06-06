@@ -6,6 +6,9 @@ from utils.vector2 import Vector2
 from utils.print2d import Print2D as print2d
 import core.states as states
 from typing import Literal
+import random as rand
+from collections import deque
+import time
 
 
 class Layer:
@@ -21,12 +24,13 @@ class Layer:
         
         self.pixels[(position.x, position.y)] = (tile.foreColorId, tile.backColorId, tile.styleId, tile.character)
         
-    def render(self):
+    def render(self, flush: bool = False):
         for (x,y),(a,b,c,d) in self.pixels.items():
             print2d.coord(
                 x + self.margin.x,
                 y + self.margin.y,
-                (graph.ForeColors[a]['color'] + graph.BackColors[b]['color'] + graph.StyleType[c]['style'] + d + graph.Reset.STYLE)
+                (graph.ForeColors[a]['color'] + graph.BackColors[b]['color'] + graph.StyleType[c]['style'] + d + graph.Reset.STYLE),
+                flush
             )
     
     def deletePixel(self, x, y):
@@ -38,6 +42,53 @@ class Layer:
 
 class LayerMaster():
     def __init__(self, colorId: int, margin: Vector2, size: Vector2):
+        nombres = [
+            'El vacio',
+            'El abismo',
+            'Lienzo',
+            'El cielo',
+            'Olimpia',
+            'La muralla',
+            'Aves',
+            'Oceano',
+            'Tacto',
+            'Infinito',
+            'Eon',
+            'El pasado',
+            'El presente',
+            'El futuro',
+            'La muerte',
+            'La vida',
+            'Astro',
+            'Sabiduria',
+            'Ignorancia',
+            'La tierra',
+            'Pureza',
+            'Constancia',
+            'Todo',
+            'Nada',
+            'Musica',
+            'Arte',
+            'Danza',
+            'Luna',
+            'Sol',
+            'Hombre',
+            'Mujer',
+            '0',
+            '10',
+            '100',
+            '1,000',
+            '10,000',
+            '100,000',
+            '1,000,000',
+            'La planta',
+            'Azar',
+            'Nubes',
+            'Lluvia',
+            'Peces',
+            'Mariposas',
+            'Metamorfosis'
+        ]
         self.tile = Tile(" ", 15, 15, 1)
         self.colorId = colorId
         self.margin = margin.copy()
@@ -49,7 +100,7 @@ class LayerMaster():
         self.layers: list[dict] = []
         for i in range(self.size.y):
             hatsuneMiku = {}
-            hatsuneMiku["name"] = f"CAPA {i}"
+            hatsuneMiku["name"] = f"{rand.choice(nombres).upper()}"
             hatsuneMiku["enable"] = True
             hatsuneMiku["draw"] = {}
             self.layers.insert(0, hatsuneMiku)
@@ -160,6 +211,60 @@ class LayerMaster():
             del self.layers[self.currentId]["draw"][(x, y)]
             
     def clear(self):
-        self.layers[self.currentId]["draw"] = {}
+        self.layers[self.currentId]["draw"].clear()
         
+    def countTiles(self):
+        maxiTecladoso = 0
+        for i in self.layers:
+            maxiTecladoso += len(i['draw'])
+            
+        return maxiTecladoso
         
+    def fill(self, position: Vector2, tile: Tile):
+        flag = False
+        p = position.copy()
+        new = tile.getList()
+        s = tile.getString()
+        target: list = []
+
+        if (p.x, p.y) in self.layers[self.currentId]['draw']:
+            flag = True
+            
+        if flag:
+            target = self.layers[self.currentId]['draw'][(p.x, p.y)]
+            if target == new:
+                return
+        
+        eichiroOda = deque([[p.x, p.y]])
+        
+        while eichiroOda:
+            
+            p.x, p.y = eichiroOda.popleft()
+            
+            if not flag:
+                if (p.x, p.y) in self.layers[self.currentId]['draw']:
+                    continue
+            
+            else:
+                if not (p.x, p.y) in self.layers[self.currentId]['draw']:
+                    continue
+                
+                if self.layers[self.currentId]['draw'][(p.x, p.y)] != target:
+                    continue
+                
+            self.layers[self.currentId]['draw'][(p.x, p.y)] = new.copy()
+                
+            if p.x > 1:
+                eichiroOda.append((p.x - 1, p.y))
+            if p.x < self.layer.size.x:
+                eichiroOda.append((p.x + 1, p.y))
+            if p.y > 1:
+                eichiroOda.append((p.x, p.y - 1))
+            if p.y < self.layer.size.y:
+                eichiroOda.append((p.x, p.y + 1))
+            time.sleep(0.0001)
+            
+            print2d.coord(p.x + self.layer.margin.x, p.y + self.layer.margin.y,s, True)
+                
+
+        self.renderDraws()

@@ -5,6 +5,7 @@ import engine.graph as graph
 # Clases del nucleo
 import core.states as states
 from core.inputHandler import Input
+from core.emitBus import bus
 
 # Clases utiles
 from utils.vector2 import Vector2
@@ -80,7 +81,7 @@ class MsgBox:
         michaelJackson += 1 if len(content) % txtBox.size.x  != 0 else 0
         status = {
                     'state' : False,
-                    'string' : '...'
+                    'string' : '...'[:size]
                 }
         panel = Panel(title, self.colorId, self.position - 1, Vector2(20, michaelJackson))
         spanel = Panel('', 12, Vector2(self.position.x + ((20 - (size + 2)) // 2), self.position.y + michaelJackson - 6), Vector2(size, 1))
@@ -104,12 +105,14 @@ class MsgBox:
                         status['state'] = False
                         break
                     case 'extra-0':
+                        bus.emit('show-cmd-cursor', True)
                         print2d.coord(cursePos.x, cursePos.y, " " * size)
                         print2d.cursePos(cursePos.x, cursePos.y)
                         string = input()
                         if len(string) > size:
                             string = string[:size]
                         status['string'] = string
+                        bus.emit('show-cmd-cursor', False)
                     case _:
                         pass
             else:

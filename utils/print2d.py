@@ -5,10 +5,10 @@ class Print2D:
     def __init__(self):
         pass
     
-    def coord(x: int = 1, y: int  = 1, string: str = 'Lorem Ipsum!'):
+    def coord(x: int = 1, y: int  = 1, string: str = 'Lorem Ipsum!', flush: bool = False):
         if x <= 0 or y <= 0:
             return
-        print(f"\033[{y};{x}H{string}")
+        print(f"\033[{y};{x}H{string}", flush=flush)
         
     def cursePos(x: int = 1, y: int = 1):
         if x <= 0 or y <= 0:

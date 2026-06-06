@@ -21,10 +21,12 @@ class Handlers:
                 'alt-right': lambda: bus.emit('slct-tile', 'r'),
                 'extra-1': lambda: bus.emit('draw-clear'),
                 'extra-2': lambda: bus.emit('fast-mode'),
-                "toogle-2": lambda: bus.emit('state-change', states.States.LAYER)                                                                                 
+                'toogle-2': lambda: bus.emit('state-change', states.States.LAYER),
+                'extra-4': lambda: bus.emit('fill-layer')
             },
             'select' : {
                 'toogle': lambda: bus.emit('state-change', states.States.DRAW),
+                'toogle-2': lambda: bus.emit('state-change', states.States.LAYER),
                 'exit' : lambda: bus.emit('mp-stop'),
                 'up': lambda: bus.emit('slct-move', 'u'),
                 'down': lambda: bus.emit('slct-move', 'd'),
@@ -43,7 +45,8 @@ class Handlers:
                 'toogle-2' : lambda: bus.emit('state-change', states.States.DRAW),
                 'exit' : lambda: bus.emit('mp-stop'),
                 'accept' : lambda: bus.emit('state-change', states.States.DRAW),
-                'extra-3' : lambda: bus.emit('rnme-layer')
+                'extra-3' : lambda: bus.emit('rnme-layer'),
+                'toogle': lambda: bus.emit('state-change', states.States.SELECTCOLOR),
             }
         }
         
