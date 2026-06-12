@@ -23,6 +23,5 @@ Un pedazo de  paint de CMD hecho como pasatiempo
 ![Logo](images/msPaintLogoRender.png)
 ===
 
-| Capturas |  |
-|------|--------|
 |![ScreenShot](images/screenshot1.png)|![ScreenShot2](images/screenshot2.png)|
+|-------|------|
