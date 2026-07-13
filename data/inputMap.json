@@ -3,18 +3,24 @@
     "a" : "left",
     "s" : "down",
     "d" : "right",
+
     "j" : "accept",
     "k" : "cancel",
-    "i" : "extra-0",
+
     "y" : "exit",
+
     "f" : "toogle",
     "r" : "toogle-2",
 
     "q" : "alt-left",
     "e" : "alt-right",
 
+    "i" : "extra-0",
     "z" : "extra-1",
     "x" : "extra-2",
     "c" : "extra-3",
-    "v" : "extra-4"
+    "v" : "extra-4",
+
+    "m" : "volume-add",
+    "n" : "volume-sub"
 }

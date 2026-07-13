@@ -102,4 +102,7 @@ class Vector2:
     def copy(self):
         return Vector2(self.x, self.y)
     
+    def set(self, x:int, y:int):
+        self.x, self.y = x, y
+    
     # endregion

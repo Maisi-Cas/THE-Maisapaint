@@ -1,5 +1,7 @@
 import os
 import msvcrt
+from utils.vector2 import Vector2
+
 
 class Print2D:
     def __init__(self):
@@ -16,9 +18,23 @@ class Print2D:
         print(f"\033[{y};{x}H", end='')
         
     def clear():
-        os.system('cls')
+        print('\033[2J\033[H', end='', flush=True)
         
     def debugPrint(string: str):
         os.system('cls')
         print(string)
         msvcrt.getch()
+        
+    def synapsis(self, a: Vector2, b:Vector2, colorId: int):
+        colorId = max(0, min(15, colorId))
+
+        # No se como ejecutar mi idea, pero se que puedo
+        # Mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+        
+        # A ver hijo de la grandiosa, ponte System.out.println("HelloWorld");
+        # Primero debemos ver la diferencia que tenemos
+        
+        delta: Vector2 = b - a
+        
+        for i in range(delta.x + 1):
+            self.coord()

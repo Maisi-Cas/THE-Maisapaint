@@ -19,6 +19,7 @@ class MsgBox:
         self.input = Input()
         self.colorId = colorId
         self.position = position.copy()
+        self.canClear = True
         
     def get(self, title: str,content: str):
         states.isMsgBoxOn = True
@@ -34,7 +35,8 @@ class MsgBox:
                 txtBox.render()
                 print2d.coord(self.position.x + 1, self.position.y + michaelJackson , f"[{graph.ForeColors[4]['color']}J{graph.Reset.STYLE}] OK")
                 if self.input.get() == 'accept':
-                    print2d.clear()
+                    if self.canClear:
+                        print2d.clear()
                     break
             else:
                 pass

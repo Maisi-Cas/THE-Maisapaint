@@ -227,3 +227,6 @@ font.txt
 .dist/
 .build/
 versions/
+song.py
+lyric.txt
+vim.txt

@@ -7,6 +7,7 @@ from typing import Literal
 from core.emitBus import bus
 import random as rand
 import core.states as states
+from utils.sound import Audio
 
 class TileSelector:
     def __init__(self, position: Vector2, count: int):
@@ -21,7 +22,17 @@ class TileSelector:
             self.count = 1
             
         self.currenTile = 0
-        self.tiles = [Tile(graph.Characters[rand.randint(0, len(graph.ForeColors) - 1)]["character"], x if x < len(graph.ForeColors) else x - (x + (1 // len(graph.ForeColors)) * len(graph.ForeColors)) , 15, 1) for x in range(self.count)]
+        self.tiles = []
+        for i in range(self.count):
+            isFore = bool(rand.randint(0,1))
+            self.tiles.append(
+                Tile(
+                    graph.Characters[rand.randint(0,len(graph.Characters) - 1)]["character"],
+                    (i % len(graph.ForeColors) if isFore else 15),
+                    (i % len(graph.BackColors) if not isFore else 15),
+                    1
+                )
+            )
         self.panel = Panel(
             'Selector de Tiles',
             self.tiles[self.currenTile].foreColorId,
@@ -40,9 +51,13 @@ class TileSelector:
         for i in range(self.count):
             print2d.coord(self.position.x + (i * 3), self.position.y, f"[{self.tiles[i]}]")
         
-        
+        if self.currenTile < len(self.tiles) // 2:
+            self.panel.indent = (self.panel.size.x // 2) + ((self.panel.size.x // 2) - len(self.panel.title))
+        else:
+            self.panel.indent = 2
         self.panel.render()
-        print2d.coord(self.position.x + (self.currenTile * 3) + 1, self.position.y + 1, graph.ForeColors[self.panel.colorId]['color'] + '^' + graph.Reset.STYLE)
+        print2d.coord(self.position.x + (self.currenTile * 3) + 1, self.position.y - 1, graph.ForeColors[self.panel.colorId]['color'] + '▼' + graph.Reset.STYLE)
+        print2d.coord(self.position.x + (self.currenTile * 3) + 1, self.position.y + 1, graph.ForeColors[self.panel.colorId]['color'] + '▲' + graph.Reset.STYLE)
     
     def change(self, characterId: int, foreColorId: int, backColorId: int, styleId: int):
         self.tiles[self.currenTile] = Tile(characterId, foreColorId, backColorId, styleId)

@@ -40,14 +40,17 @@ class Curse:
         states.currentFlag = states.Flags.MOVE
         match direction:
             case 'u':
-                self.position.y -= 1 if self.position.y > 1 else 0
+                self.position.y -= 1
             case 'd':
-                self.position.y += 1 if self.position.y < self.moveArea.y else 0
+                self.position.y += 1 
             case 'l':
-                self.position.x -= 1 if self.position.x > 1 else 0
+                self.position.x -= 1 
             case 'r':
-                self.position.x += 1 if self.position.x < self.moveArea.x else 0
-    
+                self.position.x += 1
+        self.position -= 1    
+        self.position.set((self.position.x % (self.moveArea.x)), (self.position.y % (self.moveArea.y)))
+        self.position += 1
+        
     def hideNShow(self):
         self.isVisible = not self.isVisible
                 

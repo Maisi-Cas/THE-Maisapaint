@@ -8,7 +8,7 @@ import random as rand
 from core.emitBus import bus
 
 class ColorSelector:
-    def __init__(self, position: Vector2 = Vector2(1,1), title:str = 'ColorSelector', colorId: int = 12):
+    def __init__(self, position: Vector2 = Vector2(1,1), title:str = 'ColorSelector', colorId: int = 14):
         self.position = position.copy()
         self.title = title
         self.ids = [x for x in graph.BackColors.keys()]
@@ -18,16 +18,18 @@ class ColorSelector:
         self.panel = Panel(f"[{graph.ForeColors[self.currentId]['color'] + '#' + graph.Reset.STYLE}]{self.title}", self.colorId, Vector2(self.position.x, self.position.y - 2), Vector2(len(self.ids), 1))
         
     def render(self):
+        point = lambda: (graph.ForeColors[15]['color'] if graph.ForeColors[self.currentId]['light'] else graph.ForeColors[12]['color']) + '○'
         self.panel.colorId = self.colorId
-        self.panel.title = f"[{graph.ForeColors[self.currentId]['color'] + "#" + graph.Reset.STYLE}{graph.ForeColors[self.colorId]['color']}]{self.title}"
+        xd = 12 if self.currentId == 15 else self.currentId
+        self.panel.title = f"{graph.ForeColors[xd]['color']}{self.title}"
         
         for i in range(len(self.ids)):
-            print2d.coord(self.position.x + i, self.position.y, ' ')
+            print2d.coord(self.position.x + 2 + i, self.position.y, ' ')
             
         for i in range(len(self.ids)):
-            print2d.coord(self.position.x + 2 + i, self.position.y, graph.BackColors[i]['color'] + ' ' + graph.Reset.STYLE)
+            print2d.coord(self.position.x + 2 + i, self.position.y, graph.BackColors[i]['color'] + (' ' if i != self.currentId else point()) + graph.Reset.STYLE)
         self.panel.render()
-        print2d.coord(self.position.x + self.currentId + 2, self.position.y + 1, graph.ForeColors[self.colorId]['color'] + '^' + graph.Reset.STYLE)
+        print2d.coord(self.position.x + self.currentId + 2, self.position.y + 1, graph.ForeColors[(self.currentId if self.currentId < 15 else 12)]['color'] + '▲' + graph.Reset.STYLE)
 
             
     def moveSelector(self, direction: Literal['l','r'] = 'r'):
@@ -46,7 +48,7 @@ class ColorSelector:
                 pass
             
 class CharacterSelector:
-    def __init__(self, position: Vector2 = Vector2(1,1), title:str = 'CharacterSelector', colorId: int = 12):
+    def __init__(self, position: Vector2 = Vector2(1,1), title:str = 'CharacterSelector', colorId: int = 14):
         self.position = position.copy()
         self.title = title
         self.ids = [x for x in graph.Characters.keys()]
@@ -57,22 +59,35 @@ class CharacterSelector:
         
     def render(self):
         self.panel.colorId = self.colorId
-        self.panel.title = f"[{graph.Characters[self.currentId]['character']}]{self.title}"
         
+        
+        selected = 0
+        ids = [10, 6]
         
         for i in range(len(self.ids)):
-            print2d.coord(self.position.x + i, self.position.y, ' ')
+            print2d.coord(self.position.x + 2 + i, self.position.y, ' ')
             
         for i in range(len(self.ids)):
-            if graph.Characters[i]['customizable']:
-                print(graph.ForeColors[11]['color'])
+            if i != self.currentId:
+                print(graph.StyleType[0]['style'])
+                
             else:
-                print(graph.ForeColors[7]['color'])
+                print(graph.StyleType[2]['style'])
+            
+            if graph.Characters[i]['customizable']:
+                print(graph.ForeColors[ids[0]]['color'])
+                if i == self.currentId:
+                    selected = ids[0]
+            else:
+                print(graph.ForeColors[ids[1]]['color'])
+                if i == self.currentId:
+                    selected = ids[1]
                     
             print2d.coord(self.position.x + 2 + i, self.position.y, graph.Characters[i]['character'] + graph.Reset.STYLE)
         
+        self.panel.title = f"[{graph.StyleType[2]['style']}{graph.ForeColors[selected]['color']}{graph.Characters[self.currentId]['character']}{graph.ForeColors[self.colorId]['color']}{graph.StyleType[1]['style']}]{self.title}"
         self.panel.render()
-        print2d.coord(self.position.x + self.currentId + 2, self.position.y + 1, graph.ForeColors[self.colorId]['color'] + '^' + graph.Reset.STYLE)
+        print2d.coord(self.position.x + self.currentId + 2, self.position.y + 1, graph.ForeColors[self.colorId]['color'] + '▲' + graph.Reset.STYLE)
             
     def moveSelector(self, direction: Literal['l','r'] = 'r'):
         match direction:
@@ -104,7 +119,7 @@ class CharacterSelector:
             
         
 class StyleSelector:
-    def __init__(self, position: Vector2 = Vector2(1,1), title:str = 'CharacterSelector', colorId: int = 12):
+    def __init__(self, position: Vector2 = Vector2(1,1), title:str = 'CharacterSelector', colorId: int = 14):
         self.position = position.copy()
         self.title = title
         self.ids = [x for x in graph.StyleType.keys()]
@@ -115,7 +130,7 @@ class StyleSelector:
         
     def render(self):
         self.panel.colorId = self.colorId
-        self.panel.title = self.title
+        self.panel.title = graph.StyleType[self.currentId]['style'] + self.title
         
         visibleLength = 0
         styleString = ""
@@ -141,7 +156,7 @@ class StyleSelector:
             visibleLength += len(text)
             
         for i in range(visibleLength):
-            print2d.coord(self.position.x + i, self.position.y, ' ')
+            print2d.coord(self.position.x + 2 + i, self.position.y, ' ')
             
         
         print2d.coord(self.position.x + 2, self.position.y, styleString)

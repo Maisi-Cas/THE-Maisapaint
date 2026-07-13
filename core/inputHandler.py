@@ -12,21 +12,22 @@ class Handlers:
                 'down' : lambda: bus.emit('move-curse', 'd'),
                 'left' : lambda: bus.emit('move-curse', 'l'),
                 'right' : lambda: bus.emit('move-curse', 'r'),
-                'accept' : lambda: bus.emit('draw-tile'),
-                'cancel' : lambda: bus.emit('erase-tile'),
+                'accept' : lambda: bus.emit('draw-tile', True),
+                'cancel' : lambda: bus.emit('erase-tile', True),
                 'extra-0' : lambda: bus.emit('hide-curse'),
                 'exit' : lambda: bus.emit('mp-stop'),
-                'toogle': lambda: bus.emit('state-change', states.States.SELECTCOLOR),
                 'alt-left': lambda: bus.emit('slct-tile', 'l'),
                 'alt-right': lambda: bus.emit('slct-tile', 'r'),
                 'extra-1': lambda: bus.emit('draw-clear'),
                 'extra-2': lambda: bus.emit('fast-mode'),
-                'toogle-2': lambda: bus.emit('state-change', states.States.LAYER),
-                'extra-4': lambda: bus.emit('fill-layer')
+                'extra-3': lambda: bus.emit('save-draw'),
+                'extra-4': lambda: bus.emit('fill-layer'),
+                'volume-add' : lambda: bus.emit('volume', True),
+                'volume-sub' : lambda: bus.emit('volume', False),
+                'toogle' : lambda: bus.emit('slct-state', 'r'),
+                'toogle-2' : lambda: bus.emit('slct-state', 'l')
             },
             'select' : {
-                'toogle': lambda: bus.emit('state-change', states.States.DRAW),
-                'toogle-2': lambda: bus.emit('state-change', states.States.LAYER),
                 'exit' : lambda: bus.emit('mp-stop'),
                 'up': lambda: bus.emit('slct-move', 'u'),
                 'down': lambda: bus.emit('slct-move', 'd'),
@@ -35,18 +36,28 @@ class Handlers:
                 'extra-3': lambda: bus.emit('cstm-char'),
                 'alt-left': lambda: bus.emit('slct-tile', 'l'),
                 'alt-right': lambda: bus.emit('slct-tile', 'r'),
-                'accept': lambda: bus.emit('slct-tile-change')
+                'accept': lambda: bus.emit('slct-tile-change'),
+                'volume-add' : lambda: bus.emit('volume', True),
+                'volume-sub' : lambda: bus.emit('volume', False),
+                'toogle' : lambda: bus.emit('slct-state', 'r'),
+                'toogle-2' : lambda: bus.emit('slct-state', 'l')
             },
             'layer' : {
                 'up' : lambda: bus.emit('lyr-slct', 'u'),
                 'down' : lambda: bus.emit('lyr-slct', 'd'),
                 'left' : lambda: bus.emit('lyr-slct', 'l'),
                 'right' : lambda: bus.emit('lyr-slct', 'r'),
-                'toogle-2' : lambda: bus.emit('state-change', states.States.DRAW),
                 'exit' : lambda: bus.emit('mp-stop'),
                 'accept' : lambda: bus.emit('state-change', states.States.DRAW),
                 'extra-3' : lambda: bus.emit('rnme-layer'),
-                'toogle': lambda: bus.emit('state-change', states.States.SELECTCOLOR),
+                'volume-add' : lambda: bus.emit('volume', True),
+                'volume-sub' : lambda: bus.emit('volume', False),
+                'toogle' : lambda: bus.emit('slct-state', 'r'),
+                'toogle-2' : lambda: bus.emit('slct-state', 'l')
+            },
+            'camera' : {
+                'toogle' : lambda: bus.emit('slct-state', 'r'),
+                'toogle-2' : lambda: bus.emit('slct-state', 'l')
             }
         }
         
@@ -62,6 +73,8 @@ class Handlers:
                 key = 'select'
             case states.States.LAYER:
                 key = 'layer'
+            case states.States.CAMERA:
+                key = 'camera'
             
         if action in self.handlers[key]:
             self.handlers[key][action]()

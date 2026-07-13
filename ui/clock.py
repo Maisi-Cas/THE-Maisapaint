@@ -13,7 +13,7 @@ class Clock:
     def __init__(self, position: Vector2):
         self.position: Vector2 = position.copy()
         
-        self.panel = Panel('', 14, Vector2(self.position.x - 2, self.position.y - 2), Vector2(5,1))
+        self.panel = Panel('TIME', 14, Vector2(self.position.x - 2, self.position.y - 2), Vector2(5,1), 1)
 
         self.isVisible = True
         self.running = True

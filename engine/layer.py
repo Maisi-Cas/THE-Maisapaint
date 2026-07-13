@@ -12,7 +12,10 @@ import time
 
 
 class Layer:
+
     def __init__(self, margin: Vector2 = Vector2(0,0), size: Vector2 = Vector2(64,16)):
+        self.area = Vector2(128, 128)
+        self.padding = Vector2(0, 0)
         self.margin = margin.copy()
         self.size = size.copy()
         self.pixels = {}
@@ -113,6 +116,8 @@ class LayerMaster():
     def connect(self, layer: Layer):
         if isinstance(layer, Layer):
             self.layer = layer
+            self.layer.padding = Vector2(0, 0)
+            self.layer.area = self.size.copy()
 
     def select(self, direction: Literal['u', 'd', 'l', 'r'] = 'r'):
         states.currentFlag = states.Flags.CLAYER if direction in ['u', 'd'] else states.Flags.ULAYER
@@ -188,7 +193,7 @@ class LayerMaster():
             tile = self.count(i)
             self.tile.character, self.tile.foreColorId, self.tile.backColorId, self.tile.styleId = tile[0], tile[1], tile[2], tile[3]
             print2d.coord(self.margin.x + 1, self.margin.y + 1 + i, ses + (" " * self.size.x) + graph.Reset.STYLE)
-            print2d.coord(self.margin.x + 1 + kasaneTeto, self.margin.y + 1 + i, graph.ForeColors[key]["color"] + f"[{self.tile}{graph.ForeColors[key]["color"]}]{ses}[{self.layers[i]["name"][:self.size.x - (3 + kasaneTeto + 2)]}]{graph.Reset.STYLE}")
+            print2d.coord(self.margin.x + 1 + kasaneTeto, self.margin.y + 1 + i, graph.ForeColors[key]["color"] + f"[{self.tile}{graph.ForeColors[key]["color"]}][{self.layers[i]["name"][:self.size.x - (3 + kasaneTeto + 2)]}]{graph.Reset.STYLE}")
             ses = ''
             
     def renderDraws(self):
@@ -268,3 +273,6 @@ class LayerMaster():
                 
 
         self.renderDraws()
+        
+    def getCurrentLayerLen(self):
+        return len(self.layers[self.currentId]['draw'])
