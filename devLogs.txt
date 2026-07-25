@@ -1,0 +1,1 @@
+[(9:00PM)-(24-07-2026) : La organización de las carpetas es una wasca, creo que no debi probar todo en la branch main, debo solucionarlo]
