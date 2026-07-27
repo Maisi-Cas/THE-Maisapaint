@@ -1,8 +1,0 @@
-[#]Nombre de la capa
- ^
- Este va a ser un tile que se va a mostrar
- el usuario no lo va a definir, el programa
- va a contar cuantos tiles y que colores y
- caracteres tienen.
- Entonces, el tile que se va a mostrar, será
- el que más se repita en la capa

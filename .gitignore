@@ -221,7 +221,7 @@ __marimo__/
 tryClas.py
 
 
-__pycache__/
+**__pycache__/
 *.py[cod]
 font.txt
 .dist/
@@ -230,3 +230,8 @@ versions/
 song.py
 lyric.txt
 vim.txt
+
+*.
+!.gitignore
+*.py~
+*~
