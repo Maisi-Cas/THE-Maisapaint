@@ -23,6 +23,7 @@ from engine.msgBox import MsgBox
 from core.emitBus import bus
 from core.inputHandler import kInput
 import core.states as states
+from core.menu import Menu
 
 # Clases/Recursos utiles (Estos 2 papuchos son los que mantienen el programa en funcionamiento)
 from utils.vector2 import Vector2 
@@ -74,7 +75,6 @@ class Maisapaint:
             self.textBox = TextBox(self.postion.copy(), self.size.copy(), self.splashText, 2)
         
         def render(self):
-            self.changeSplash()
             self.panel.render()
             self.textBox.render()
     
@@ -345,10 +345,19 @@ class Maisapaint:
         )
         self.mainpanel.type = 'double'
         self.audio.position = Vector2(self.keytable.table.margin.x, self.keytable.table.margin.y + self.keytable.table.height + 2)
-        
+        # Menu
+        self.menu = Menu(
+            Vector2(
+            self.mainpanel.margin.x + ((self.mainpanel.size.x - 32) // 2),
+            self.mainpanel.margin.y + 2
+            )
+            ,self.superPanel.colorId,
+            self
+        )
+
         # Conectar señales
         bus.conect('draw-tile', self.drawTile)
-        bus.conect('mp-stop', self.stop)
+        bus.conect('mp-stop', self.openMenu)
         bus.conect('slct-move', self.select)
         bus.conect('state-change', self.changeState)
         bus.conect('erase-tile', self.eraseTile)
@@ -364,6 +373,7 @@ class Maisapaint:
         bus.conect('save-draw', self.saveDraw)
         bus.conect('slct-tile', self.moveTile)
         bus.conect('slct-state', self.selectState)
+        bus.conect('dropper', self.dropper)
 
     # region Run  
     # Funcion que corre el programa    
@@ -590,9 +600,12 @@ class Maisapaint:
         states.currentFlas = states.Flags.DRAW
         self.layermaster.deletePixel(self.curse.position.x, self.curse.position.y)
     
-    # En serio debo explicar que hace esta linea?    
+    # En serio debo explicar que hace esta linea? 
+    def openMenu(self):
+        self.menu.open()
+
     def stop(self):
-        
+        self.msgBox.colorId = 0
         self.canRun = not self.msgBox.getYesNo('Confirmar', 'Esta seguro de querer salir de THE#MSPaint?')
 
     def selectState(self, direction: Literal['l', 'r'] = 'r'):
@@ -739,7 +752,8 @@ class Maisapaint:
     def clear(self):
         if self.layermaster.getCurrentLayerLen() == 0:
             return
-        
+
+        self.msgBox.colorId = 2
         if self.msgBox.getYesNo('Limpiar Capa', 'Estás seguro de querer limpar la capa actual?'):
             self.layermaster.clear()
             self.audio.play('clear')
@@ -812,3 +826,11 @@ class Maisapaint:
                 
     def moveTile(self, *args, **kwargs):
         self.audio.play('click-1')
+
+    def dropper(self):
+        if self.layermaster.getPixel(self.curse.position.copy()):
+            tile = self.layermaster.getPixel(self.curse.position.copy())
+            self.tileSelector.tiles[self.tileSelector.currenTile] = Tile(tile[3], tile[0], tile[1], tile[2])
+            self.updateCurse()
+            states.currentFlag = states.Flags.CTILE
+            

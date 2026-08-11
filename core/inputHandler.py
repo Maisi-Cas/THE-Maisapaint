@@ -25,7 +25,8 @@ class Handlers:
                 'volume-add' : lambda: bus.emit('volume', True),
                 'volume-sub' : lambda: bus.emit('volume', False),
                 'toogle' : lambda: bus.emit('slct-state', 'r'),
-                'toogle-2' : lambda: bus.emit('slct-state', 'l')
+                'toogle-2' : lambda: bus.emit('slct-state', 'l'),
+                'extra-5' : lambda: bus.emit('dropper')
             },
             'select' : {
                 'exit' : lambda: bus.emit('mp-stop'),
@@ -86,6 +87,9 @@ class Handlers:
         for i, j in _kInput.inputMap.items():
             if j == value:
                 return i
+
+    def getKeyPressed(self) -> str:
+        return _kInput.get()
 
 class Input:
     

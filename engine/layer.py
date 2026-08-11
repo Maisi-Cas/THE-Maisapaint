@@ -28,13 +28,22 @@ class Layer:
         self.pixels[(position.x, position.y)] = (tile.foreColorId, tile.backColorId, tile.styleId, tile.character)
         
     def render(self, flush: bool = False):
+        drawString = print2d.getStr(1,1)
         for (x,y),(a,b,c,d) in self.pixels.items():
-            print2d.coord(
-                x + self.margin.x,
-                y + self.margin.y,
-                (graph.ForeColors[a]['color'] + graph.BackColors[b]['color'] + graph.StyleType[c]['style'] + d + graph.Reset.STYLE),
-                flush
-            )
+        
+            drawString += print2d.getStr(
+                    x + self.margin.x,
+                    y + self.margin.y
+                ) + (graph.ForeColors[a]['color'] + graph.BackColors[b]['color'] + graph.StyleType[c]['style'] + d + graph.Reset.STYLE)
+            # print2d.coord(
+            #     x + self.margin.x,
+            #     y + self.margin.y,
+            #     (graph.ForeColors[a]['color'] + graph.BackColors[b]['color'] + graph.StyleType[c]['style'] + d + graph.Reset.STYLE),
+            #     flush
+            # )
+        print(drawString)
+        
+    
     
     def deletePixel(self, x, y):
         if (x, y) in self.pixels:
@@ -43,7 +52,7 @@ class Layer:
     def clear(self):
         self.pixels = {}
 
-class LayerMaster():
+class LayerMaster:
     def __init__(self, colorId: int, margin: Vector2, size: Vector2):
         nombres = [
             'El vacio',
@@ -276,3 +285,9 @@ class LayerMaster():
         
     def getCurrentLayerLen(self):
         return len(self.layers[self.currentId]['draw'])
+
+    def getPixel(self, postion: Vector2):
+        if (postion.x, postion.y) in self.layers[self.currentId]["draw"].keys():
+            return list(self.layers[self.currentId]["draw"][(postion.x , postion.y)])
+        else:
+            return []

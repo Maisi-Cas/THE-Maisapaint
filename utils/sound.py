@@ -21,31 +21,26 @@ class Audio:
             'click-1' : pygame.mixer.Sound('sounds/click-1.wav'),
             'click-2' : pygame.mixer.Sound('sounds/click-2.wav')
         }
-        self.volume = 1
+        self.volume = 0.5
         self.position = Vector2(1,1)
         
         bus.conect('volume', self.addVolume)
     
     def play(self, key: str):
-        return
         if key in self.sounds.keys():
             self.sounds[key].set_volume(self.volume)
             self.sounds[key].play()
             
     def repeat(self, key: str):
-        return
         if key in self.sounds.keys():
             self.sounds[key].set_volume(self.volume)
             self.sounds[key].play(-1)
             
     def stop(self, key: str):
-        return
         if key in self.sounds.keys():
             self.sounds[key].stop()
             
     def addVolume(self, boo: bool):
-        return
-        
         if boo:
             self.volume += 0.1
         else :
@@ -57,11 +52,9 @@ class Audio:
             i.set_volume(self.volume)
             
     def setPos(self, position: Vector2):
-        return
         self.position = position.copy()
         
     def render(self):
-        return
         num = max(0, min(2, ((self.volume * 10) // 3) - 1))
         
         barstring = ""

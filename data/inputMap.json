@@ -20,6 +20,7 @@
     "x" : "extra-2",
     "c" : "extra-3",
     "v" : "extra-4",
+    "g" : "extra-5",
 
     "m" : "volume-add",
     "n" : "volume-sub"

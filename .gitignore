@@ -235,3 +235,4 @@ vim.txt
 !.gitignore
 *.py~
 *~
+try.py
