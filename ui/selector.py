@@ -6,8 +6,14 @@ from typing import Literal
 from core.inputHandler import kInput
 import random as rand
 from core.emitBus import bus
+from abc import ABC, abstractmethod
 
-class ColorSelector:
+class Selector(ABC):
+    @abstractmethod
+    def render():
+        pass
+
+class ColorSelector(Selector):
     def __init__(self, position: Vector2 = Vector2(1,1), title:str = 'ColorSelector', colorId: int = 14):
         self.position = position.copy()
         self.title = title
@@ -47,7 +53,7 @@ class ColorSelector:
             case _:
                 pass
             
-class CharacterSelector:
+class CharacterSelector(Selector):
     def __init__(self, position: Vector2 = Vector2(1,1), title:str = 'CharacterSelector', colorId: int = 14):
         self.position = position.copy()
         self.title = title
@@ -59,7 +65,6 @@ class CharacterSelector:
         
     def render(self):
         self.panel.colorId = self.colorId
-        
         
         selected = 0
         ids = [10, 6]
@@ -118,7 +123,7 @@ class CharacterSelector:
         bus.emit('show-cmd-cursor', False)
             
         
-class StyleSelector:
+class StyleSelector(Selector):
     def __init__(self, position: Vector2 = Vector2(1,1), title:str = 'CharacterSelector', colorId: int = 14):
         self.position = position.copy()
         self.title = title

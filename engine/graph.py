@@ -86,4 +86,7 @@ StyleType = {
     2: {'name' : 'bright', 'style' : Style.BRIGHT}
 }
 
+def foreColor(id: int):
+    return ForeColors[id]['color']
+
 Reset = _Reset()

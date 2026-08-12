@@ -20,6 +20,7 @@ from engine.table import Table
 from engine.msgBox import MsgBox
 
 # Clases del nucleo
+from core.save import Save
 from core.emitBus import bus
 from core.inputHandler import kInput
 import core.states as states
@@ -354,6 +355,7 @@ class Maisapaint:
             ,self.superPanel.colorId,
             self
         )
+        self.save = Save(self.superPanel.colorId, self.mainpanel.margin.sum(1, 8))
 
         # Conectar señales
         bus.conect('draw-tile', self.drawTile)
@@ -374,6 +376,7 @@ class Maisapaint:
         bus.conect('slct-tile', self.moveTile)
         bus.conect('slct-state', self.selectState)
         bus.conect('dropper', self.dropper)
+        bus.conect('change-name', self.changeDrawName)
 
     # region Run  
     # Funcion que corre el programa    
@@ -606,7 +609,7 @@ class Maisapaint:
 
     def stop(self):
         self.msgBox.colorId = 0
-        self.canRun = not self.msgBox.getYesNo('Confirmar', 'Esta seguro de querer salir de THE#MSPaint?')
+        self.canRun = not self.msgBox.getYesNo('Confirmar', 'Esta seguro de querer salir de The#Maisapaint?, perderás cambios no guardados')
 
     def selectState(self, direction: Literal['l', 'r'] = 'r'):
         match direction:
@@ -833,4 +836,10 @@ class Maisapaint:
             self.tileSelector.tiles[self.tileSelector.currenTile] = Tile(tile[3], tile[0], tile[1], tile[2])
             self.updateCurse()
             states.currentFlag = states.Flags.CTILE
-            
+
+    def openSave(self):
+        self.save.open(self.layermaster.layers.copy())     
+
+    def changeDrawName(self, title, tile):
+        self.mainpanel.title = title
+        self.mainpanel.subTitle = tile.getString()  

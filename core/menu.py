@@ -36,12 +36,12 @@ class Menu:
         )
 
     def renderOptions(self):
-        suco = lambda niggas, index : "--" if self.currentId != index else (">>" if niggas else "<<") 
+        suco = lambda niggas, index : "-----" if self.currentId != index else (">>>>>" if niggas else "<<<<<") 
         for i in range(0, len(self.OPTIONNAMES)):
             Print2D.coord(
                 self.position.x + 4,
                 self.position.y + (i * 2) + 3,
-                f"{graph.ForeColors[self.OPTIONNAMES[i]["color"]]["color"]}[{self.OPTIONNAMES[i]["icon"]}] {(graph.ForeColors[self.OPTIONNAMES[i]["color"]]["color"]) if self.currentId == i else (graph.ForeColors[14]["color"])}    {suco(True, i)}    {self.OPTIONNAMES[i]["name"]}    {suco(False, i)}{graph.Reset.STYLE}"
+                f"{graph.ForeColors[self.OPTIONNAMES[i]["color"]]["color"]}[{self.OPTIONNAMES[i]["icon"]}] {(graph.ForeColors[self.OPTIONNAMES[i]["color"]]["color"]) if self.currentId == i else (graph.ForeColors[14]["color"])}    {suco(True, i)} {self.OPTIONNAMES[i]["name"]} {suco(False, i)}{graph.Reset.STYLE}"
             )
 
     def open(self):
@@ -86,6 +86,11 @@ class Menu:
             case 1:
                 self.canRender = False
                 self.msp.stop()
+
+            case 3:
+                self.canRender = False
+                self.msp.renderInterface()
+                self.msp.openSave()
 
             case _:
                 pass

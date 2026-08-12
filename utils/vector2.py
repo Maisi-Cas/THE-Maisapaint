@@ -104,5 +104,8 @@ class Vector2:
     
     def set(self, x:int, y:int):
         self.x, self.y = x, y
+
+    def sum(self, x:int, y:int):
+        return Vector2(self.x + x, self.y + y)
     
     # endregion
