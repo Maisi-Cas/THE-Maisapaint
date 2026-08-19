@@ -21,6 +21,7 @@ class Menu:
     ]
 
     def __init__(self, position: Vector2, colorId: int, msp):
+        self.PYTHONCONCACA = 4
         self.msp = msp
         self.currentId = 0
         self.position = position.copy()
@@ -86,6 +87,11 @@ class Menu:
             case 1:
                 self.canRender = False
                 self.msp.stop()
+
+            case 2:
+                self.canRender = False
+                self.msp.renderInterface()
+                self.msp.openLoad()
 
             case 3:
                 self.canRender = False

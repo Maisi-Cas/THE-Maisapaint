@@ -107,5 +107,8 @@ class Vector2:
 
     def sum(self, x:int, y:int):
         return Vector2(self.x + x, self.y + y)
+
+    def sub(self, x:int, y:int):
+            return Vector2(self.x - x, self.y - y)
     
     # endregion

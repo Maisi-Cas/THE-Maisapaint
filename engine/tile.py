@@ -2,6 +2,12 @@ import engine.graph as graph
 
 class Tile:
     def __init__(self, character, foreColorID, backColorID, styleID):
+        self.character = str(character)[0]
+        self.foreColorId = foreColorID
+        self.backColorId = backColorID
+        self.styleId = styleID
+
+    def reset(self, character, foreColorID, backColorID, styleID):
         self.character = character
         self.foreColorId = foreColorID
         self.backColorId = backColorID

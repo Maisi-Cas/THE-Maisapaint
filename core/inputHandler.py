@@ -96,7 +96,7 @@ class Input:
     def __init__(self):
         #Esto es para la lectura del JSON
         self.inputMap = {}
-        with open('data/inputMap.json', 'r') as inputMap:
+        with open('config/inputMap.json', 'r') as inputMap:
             self.inputMap = json.load(inputMap)
         
     def get(self):

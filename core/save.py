@@ -21,6 +21,7 @@ from typing import Literal
 import os
 import json
 import re
+from datetime import datetime
 
 class Save:
     isRunning: bool
@@ -175,7 +176,7 @@ class Save:
             self.msgBox.get("Titulo no valido", 'Desafortunadamente el nombre de tu dibujo posee caracteres no validos >>([\\/:*?"<>|])<<')
             self.open(draw.copy())
             return
-        directory = f"draws/{self.title.replace(" ", "-")}.json"
+        directory = f"draws/{self.title.replace(" ", "-")}.msp"
         if os.path.exists("draws") and os.path.isdir("draws"):
             if os.path.exists(directory) and os.path.isfile(directory):
                 if self.msgBox.getYesNo("Sobreescribir", f'Se ha encontrado otro archivo con el nombre {f"{self.title.replace(" ", "-")}.json"}, desea sobreescribirlo?'):
@@ -189,12 +190,15 @@ class Save:
                 self.write(draw.copy())
         else:
             os.mkdir("draws")
+            self.writeReadme()
             self.write(draw.copy())
             
 
     def write(self, draw):
-        directory = f"draws/{self.title.replace(" ", "-")}.json"
+        directory = f"draws/{self.title.replace(" ", "-")}.msp"
         sonichu = {}
+        sonichu["format"] = {"format" : "msp", "version" : 1}
+        sonichu["date"] = datetime.now().strftime("%d-%m-%Y %H:%M")
         sonichu["icon"] = [self.tile.character, self.tile.foreColorId, self.tile.backColorId, self.tile.styleId]
         sonichu["layers"] = []
 
@@ -204,10 +208,28 @@ class Save:
             hatsuneMiku["enable"] = i["enable"]
             hatsuneMiku["draw"] = {}
             for (x,y), (a,b,c,d) in i["draw"].items():
-                hatsuneMiku["draw"][f"{x}, {y}"] = [a, b, c, d]
+                hatsuneMiku["draw"][f"{x},{y}"] = [a, b, c, d]
             sonichu["layers"].append(hatsuneMiku)
 
         with open(directory, 'w', encoding='utf-8', ) as f:
             json.dump(sonichu, f, ensure_ascii=False)
 
         bus.emit('change-name', self.title, self.tile.copy())
+
+    def writeReadme(self):
+        directory = f"draws/readme.txt"
+        msg = [
+            "Genial estás leyendo esto",
+            "Me imagino que es por que probablemente",
+            "hayas notado un nuevo archivo, aca se guardan",
+            "los dibujos en un formato llamado msp, asi que una cosita,",
+            "de preferencia",
+            "NO TOQUES NADA, O TODO SE VA A LA-",
+            "",
+            "Con cariño el creador de MSP",
+            "",
+            f"Si logras leer esto, tienes mi humor \n{self.title * 10}" if "polla" in self.title.lower() else f"Bravo tu primer dibujo se llama {self.title}"
+        ]
+
+        with open(directory, "w", encoding="utf-8") as f:
+            f.writelines(line + "\n" for line in msg)

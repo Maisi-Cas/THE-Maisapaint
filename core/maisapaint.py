@@ -24,7 +24,9 @@ from core.save import Save
 from core.emitBus import bus
 from core.inputHandler import kInput
 import core.states as states
+import core.polla as polla
 from core.menu import Menu
+from core.load import Load
 
 # Clases/Recursos utiles (Estos 2 papuchos son los que mantienen el programa en funcionamiento)
 from utils.vector2 import Vector2 
@@ -62,7 +64,7 @@ class Maisapaint:
             
             self.splashText = ""
             
-            with open('data/splashTexts.json', 'r') as splashTexts:
+            with open('config/splashTexts.json', 'r') as splashTexts:
                 self.splashText = rand.choice(json.load(splashTexts)['normal'])
             
             self.textBox = TextBox(self.postion.copy(), self.size.copy(), self.splashText, 2)
@@ -70,7 +72,7 @@ class Maisapaint:
             
         def changeSplash(self):
 
-            with open('data/splashTexts.json', 'r') as splashTexts:
+            with open('config/splashTexts.json', 'r') as splashTexts:
                 self.splashText = rand.choice(json.load(splashTexts)['normal'])
             
             self.textBox = TextBox(self.postion.copy(), self.size.copy(), self.splashText, 2)
@@ -139,8 +141,7 @@ class Maisapaint:
                 case states.States.LAYER:
                     key = 'layer'
                 case states.States.CAMERA:
-                    key = 'camera'
-                    
+                    key = 'camera'     
             
             for i in self.valueDict[key]:
                 self.table.addContet(i[0], i[1])
@@ -187,6 +188,19 @@ class Maisapaint:
             self.colorId = colorId
             self.panel = Panel('Info', self.colorId, self.position.copy(), self.size.copy())
             self.panel.subTitleIndent = 6
+
+        def easterEgg(self):
+            
+            holaSoyTransSans = False
+            for i in polla.tumamabank:
+                if i in self.father.mainpanel.title.lower():
+                    holaSoyTransSans = True
+
+            if not holaSoyTransSans:
+                return graph.ForeColors[self.father.layermaster.countTiles() % 15]['color'] + str(self.father.layermaster.countTiles()) + graph.Reset.STYLE
+            else:
+                return graph.foreColor(11) + "99999999999" + graph.Reset.STYLE
+            
         
         def render(self):
             process = psutil.Process(os.getpid())
@@ -201,7 +215,7 @@ class Maisapaint:
                 f'D. RAPIDO: {fastDraw}',
                 f'TILE : [{self.father.tileSelector.tiles[self.father.tileSelector.currenTile].getString()}]',
                 f'S. TILE : [{self.father.selectorPanelTile.getString()}]',
-                f'T. DIBUJADOS : {graph.ForeColors[self.father.layermaster.countTiles() % 15]['color']}{self.father.layermaster.countTiles()}{graph.Reset.STYLE}',
+                f'T. DIBUJADOS : {self.easterEgg()}',
                 f'CAPA : {graph.ForeColors[3]['color']}{self.father.layermaster.layers[self.father.layermaster.currentId]["name"]}{graph.Reset.STYLE}',
                 f'MODO : {graph.ForeColors[self.getStateColor()]['color']}{states.current.name}{graph.Reset.STYLE}',
                 f'V : {graph.ForeColors[9]['color']}{self.father.version}{graph.Reset.STYLE}',
@@ -355,7 +369,8 @@ class Maisapaint:
             ,self.superPanel.colorId,
             self
         )
-        self.save = Save(self.superPanel.colorId, self.mainpanel.margin.sum(1, 8))
+        self.save = Save(self.superPanel.colorId, self.menu.position.sub(7,1))
+        self.load = Load(self.superPanel.colorId, self.menu.position.sub(6,1))
 
         # Conectar señales
         bus.conect('draw-tile', self.drawTile)
@@ -377,6 +392,7 @@ class Maisapaint:
         bus.conect('slct-state', self.selectState)
         bus.conect('dropper', self.dropper)
         bus.conect('change-name', self.changeDrawName)
+        bus.conect('load-draw', self.loadDraw)
 
     # region Run  
     # Funcion que corre el programa    
@@ -843,3 +859,9 @@ class Maisapaint:
     def changeDrawName(self, title, tile):
         self.mainpanel.title = title
         self.mainpanel.subTitle = tile.getString()  
+
+    def openLoad(self):
+        self.load.open()
+
+    def loadDraw(self, draw: dict):
+        self.layermaster.layers = draw.copy()

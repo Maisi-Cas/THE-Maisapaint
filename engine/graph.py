@@ -87,6 +87,12 @@ StyleType = {
 }
 
 def foreColor(id: int):
+    id = min(max(0, id), 15)
     return ForeColors[id]['color']
+
+def style(id: int):
+    
+    id = min(max(0, id), 2)
+    return StyleType[0]['style']
 
 Reset = _Reset()

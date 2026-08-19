@@ -112,7 +112,7 @@ class LayerMaster:
         self.layers: list[dict] = []
         for i in range(self.size.y):
             hatsuneMiku = {}
-            hatsuneMiku["name"] = f"{rand.choice(nombres).upper()}"
+            hatsuneMiku["name"] = f"{i + 1}|{rand.choice(nombres).upper()}"
             hatsuneMiku["enable"] = True
             hatsuneMiku["draw"] = {}
             self.layers.insert(0, hatsuneMiku)
