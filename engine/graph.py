@@ -93,6 +93,11 @@ def foreColor(id: int):
 def style(id: int):
     
     id = min(max(0, id), 2)
-    return StyleType[0]['style']
+    return StyleType[id]['style']
+
+def character(id: int):
+
+    id = min(max(0, id), 24)
+    return Characters[id]['character']
 
 Reset = _Reset()

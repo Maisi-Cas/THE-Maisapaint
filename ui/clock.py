@@ -18,19 +18,15 @@ class Clock:
         self.isVisible = True
         self.running = True
         bus.conect('clock-visible', self.toogleVisibility)
-
-        self.thread = threading.Thread(target=self.loop)
-        self.thread.daemon = True
-        self.thread.start()
+        self.hour = datetime.now().strftime("%H:%M")
 
     def toogleVisibility(self, value: bool):
         self.isVisible = value
     
     def render(self):
-        hour = datetime.now().strftime("%H:%M")
         
         self.panel.render()
-        print2d.coord(self.position.x, self.position.y, graph.ForeColors[5]['color'] + hour + graph.Reset.STYLE)
+        print2d.coord(self.position.x, self.position.y, graph.ForeColors[5]['color'] + self.hour + graph.Reset.STYLE)
         
 
     def loop(self):
@@ -41,3 +37,11 @@ class Clock:
                 states.clockIsRendering = False
 
             time.sleep(3)
+
+    def process(self):
+        trans = datetime.now().strftime("%H:%M")
+        if self.hour != trans:
+            
+            self.hour = trans
+
+            states.clockNInfoRender = True

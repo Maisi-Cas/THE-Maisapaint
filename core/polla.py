@@ -1,4 +1,3 @@
-
 tumamabank = [
     "tu mama",
     "tu mamá",
@@ -7,6 +6,16 @@ tumamabank = [
     "tu progenitora",
     "mi polla"
 ]
+
+def chekUrMonInStr(string):
+    global tumamabank
+    for i in tumamabank:
+        if i in string:
+            return True
+
+    return False
+
+saveFormat = "maisapt"
 
 if __name__ == "__main__":
     dick = {

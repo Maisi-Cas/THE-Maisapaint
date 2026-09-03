@@ -1,8 +1,8 @@
 from enum import Enum
 
 class States(Enum):
-    DRAW = 0
-    SELECTCOLOR = 1
+    SELECTCOLOR = 0
+    DRAW = 1
     LAYER = 2
     CAMERA = 3
 
@@ -23,3 +23,5 @@ current = States.DRAW
 isRendering:bool = True
 clockIsRendering:bool = False
 isMsgBoxOn: bool = False
+
+clockNInfoRender: bool = False

@@ -9,6 +9,7 @@ import json
 import msvcrt
 import time
 import psutil
+from enum import Enum
 
 # Clases del motor
 import engine.graph as graph
@@ -49,15 +50,12 @@ class Maisapaint:
             
             print2d.clear()
             chargeString = ['The#MSPaint por Maisi','Hecho en Python','Cargando...']
-            time.sleep(0.01)
             for i in chargeString:
                 for j in range(len(i)):
                     randNum = rand.randint(0, len(graph.ForeColors) - 2)
                     print(graph.ForeColors[randNum]['color'] + i[j] + graph.Reset.STYLE, end='', flush=True)                
-                    time.sleep(0.01)
-                print()
-            time.sleep(0.7)                                                    
-            
+                print()                                                  
+            time.sleep(0.01)
                 
             self.postion = position.copy()
             self.size = size.copy()
@@ -99,30 +97,31 @@ class Maisapaint:
                     [ik('extra-0'), "OCULTAR CURSOR"],
                     [ik('extra-1'), "LIMPIAR DIBUJO"],
                     [ik('extra-2'), "ALTERNAR DIBUJO RAPIDO"],
-                    [ik('extra-3'), "CUBETA"],
+                    [ik('extra-4'), "CUBETA"],
+                    [ik('extra-5'), "CUENTAGOTAS"],
                     [f"{ik('volume-sub')} {ik('volume-add')}", "VOLUMEN"],
-                    [ik('exit'), "SALIR"]
+                    [ik('exit'), "MENU"]
                     
                 ],
                 'select' : [
                     [f"{ik('up')} {ik('down')}", "CAMBIAR SELECTOR"],
-                    ["A D", "CAMBIAR VALOR"],
-                    ["J", "AÑADIR TILE"],
-                    ["Q E", "SELECCIONAR TILE"],
-                    ["R", "MODO CAPA"],
-                    ["F", "MODO DIBUJO"],
-                    ["C", "CUSTOMIZAR CARACTER"],
+                    [f"{ik('left')} {ik('right')}", "CAMBIAR VALOR"],
+                    [ik('accept'), "AÑADIR TILE"],
+                    [f"{ik('alt-left')} {ik('alt-right')}", "SELECCIONAR TILE"],
+                    [ik('toogle-2'), "MODO DIBUJO"],
+                    [ik('toogle'), "MODO CAPA"],
+                    [ik('extra-3'), "CUSTOMIZAR CARACTER"],
                     [f"{ik('volume-sub')} {ik('volume-add')}", "VOLUMEN"],
-                    ["Y", "SALIR"]
+                    [ik('exit'), "MENU"]
                 ],
                 'layer' : [
-                    ["W S", "SELECCIONAR CAPA"],
-                    ["A D", "OCULTAR Y MOSTRAR CAPA"],
-                    ["R J", "MODO DIBUJO"],
-                    ["F", "MODO CAPA"],
-                    ["C", "RENOMBRAR CAPA"],
+                    [f"{ik('up')} {ik('down')}", "SELECCIONAR CAPA"],
+                    [f"{ik('left')} {ik('right')}", "OCULTAR Y MOSTRAR CAPA"],
+                    [f"{ik('toogle')} {ik('accept')}", "MODO DIBUJO"],
+                    [ik('toogle-2'), "MODO SELECTOR"],
+                    [ik('extra-3'), "RENOMBRAR CAPA"],
                     [f"{ik('volume-sub')} {ik('volume-add')}", "VOLUMEN"],
-                    ["Y", "SALIR"]
+                    [ik('exit'), "MENU"]
                 ],
                 'camera' : [
                     ["MSJ" , "EN PROGREO :>"]
@@ -182,6 +181,7 @@ class Maisapaint:
     
     class Info:
         def __init__(self, position: Vector2, ancho: int, colorId: int, father):
+            self.memory = 0
             self.father = father
             self.position = position.copy()
             self.size = Vector2(ancho, 12)
@@ -203,8 +203,6 @@ class Maisapaint:
             
         
         def render(self):
-            process = psutil.Process(os.getpid())
-            memoria = process.memory_info().rss
             
             fastDraw: str = ((graph.ForeColors[5]['color'] + 'DIBUJO' + graph.Reset.STYLE) if self.father.fastDrawTool else (graph.ForeColors[0]['color'] + 'BORRAR' + graph.Reset.STYLE)) if self.father.fastDrawMode else (graph.ForeColors[14]['color'] + 'NO' + graph.Reset.STYLE)
 
@@ -219,7 +217,7 @@ class Maisapaint:
                 f'CAPA : {graph.ForeColors[3]['color']}{self.father.layermaster.layers[self.father.layermaster.currentId]["name"]}{graph.Reset.STYLE}',
                 f'MODO : {graph.ForeColors[self.getStateColor()]['color']}{states.current.name}{graph.Reset.STYLE}',
                 f'V : {graph.ForeColors[9]['color']}{self.father.version}{graph.Reset.STYLE}',
-                f'MEMORIA : {graph.ForeColors[5]['color']}{round(memoria/(1024 ** 2),4)} MB{graph.Reset.STYLE}'
+                f'MEMORIA : {graph.ForeColors[5]['color']}{self.memory} MB{graph.Reset.STYLE}'
                 
             ]
             
@@ -255,7 +253,33 @@ class Maisapaint:
                 
             return 12
 
+        def process(self):
+
+            process = psutil.Process(os.getpid())
+            memoria = process.memory_info().rss
+            memoria = round(memoria/(1024 ** 2), 4)
+
+            if self.memory != memoria:
+                self.memory = memoria
+
+                states.clockNInfoRender = True
+
+    class DrawState(Enum):
+        NEW = 0
+        LOADED = 1
+
     def __init__(self):
+        self.currentDrawState = self.DrawState.NEW
+        self.drawTitle = "Dibujo sin nombre"
+        self.drawSelectorPositions = [14, 1, 15, 1]
+
+        self.drawRepTile = Tile(
+            graph.character(self.drawSelectorPositions[1]),
+            self.drawSelectorPositions[0],
+            self.drawSelectorPositions[2],
+            self.drawSelectorPositions[3]
+        )
+
         self.currentState = 0
         self.stateList = list(states.States)
         self.version = '(InDev) a-2'
@@ -266,7 +290,8 @@ class Maisapaint:
         self.audio = Audio()
         # Declaracion de los Paneles/Frames
         self.superPanel = Panel(f"{graph.ForeColors[0]['color']}T{graph.ForeColors[5]['color']}H{graph.ForeColors[8]['color']}E{graph.ForeColors[2]['color']}#{graph.ForeColors[1]['color']}M{graph.ForeColors[2]['color']}a{graph.ForeColors[3]['color']}i{graph.ForeColors[4]['color']}s{graph.ForeColors[6]['color']}a{graph.ForeColors[7]['color']}p{graph.ForeColors[9]['color']}a{graph.ForeColors[10]['color']}i{graph.ForeColors[11]['color']}n{graph.ForeColors[12]['color']}t", rand.randint(0, 14), Vector2(0,0), Vector2(100,29))
-        self.mainpanel = Panel('Dibujo', 12, Vector2(28,4), Vector2(48,16))
+        self.mainpanel = Panel(self.drawTitle, 12, Vector2(28,4), Vector2(48,16))
+        self.mainpanel.subTitle = self.drawRepTile.getString()
         self.tileSelector = TileSelector(Vector2(30,3), 16)
         self.splashtext = self.SplashText(Vector2(3,3), Vector2(25,5))
         self.selectorPanel = Panel(
@@ -393,6 +418,9 @@ class Maisapaint:
         bus.conect('dropper', self.dropper)
         bus.conect('change-name', self.changeDrawName)
         bus.conect('load-draw', self.loadDraw)
+        bus.conect('get-draw-name', self.sendDrawName)
+        bus.conect('change-s-r-t-p', self.llegueAlPuntoDeFaltaDeOriginalidadQueNoSeComoNombrarEsteMetodoQueRecibeUnaListaYRegresaPuraMadre)
+        bus.conect('maisapaint-render', self.renderInterface)
 
     # region Run  
     # Funcion que corre el programa    
@@ -413,12 +441,26 @@ class Maisapaint:
             
             if not states.clockIsRendering:
                 #Renderizar
+
+                self.info.process()
+                self.clock.process()
+
                 self.renderInterface()
-                self.info.render()
+                if states.clockNInfoRender:
+                    self.info.render()
+                    self.clock.render()
+
+                    states.clockNInfoRender = False
                 
                 states.isRendering = False
-                states.currentFlag = states.Flags.NONE
-                kInput.inputHandler()
+                states.currentFlag = states.Flags.PASS
+
+                if msvcrt.kbhit():
+                    states.currentFlag = states.Flags.NONE
+                    kInput.inputHandler()
+
+            time.sleep(0.005)
+                    
         
         self.superPanel.title = "BYE BYE ;)"
         self.superPanel.render(True)
@@ -542,6 +584,9 @@ class Maisapaint:
                 self.layermaster.render()
                 self.layermaster.renderDraws()
                 self.clock.render()
+
+            case states.Flags.PASS:
+                pass
     
     def renderCamera(self):
         match states.currentFlag:
@@ -550,7 +595,7 @@ class Maisapaint:
             case _:
                 pass
                 
-    def renderTitle(self, position: Vector2):
+    def renderTitle(self, position: Vector2, color = -1):
         "0 5 8 2 1 4 7 9 10 11 12"
         
         title = [
@@ -559,11 +604,17 @@ class Maisapaint:
             f'  │ │   │ ──  + ─┤ │ │ ├─┐ │ + │ - │ │   │ │  │ ┌────┘ │',
             f'  │ │ │ │ ──┐   ┌┴─┴─┴─┴─┘ │ ┌─┤ │ │ │ │ │ │  └─┤ ───┬─┘',
             f'  └─┴─┴─┴───┴─┴─┴──────────┤ │ └─┴─┴─┴─┴─┴─┘    └────┘',
-            f'                           └─┘ por MaisiCas'
+            f'                           └─┘ {graph.foreColor(2)}por MaisiCas'
         ]
         print(graph.ForeColors[self.superPanel.colorId]['color'])
+        laMamaDeFabian = 0
+        if color >= 0:
+            laMamaDeFabian = color
+        else:
+            laMamaDeFabian = rand.randint(0,14)
+
         for i in range(len(title)):
-            print2d.coord(position.x, position.y + i, title[i])
+            print2d.coord(position.x, position.y + i, graph.foreColor((i + laMamaDeFabian) % 15) + title[i] + graph.Reset.STYLE)
         print(graph.Reset.STYLE)
                     
     # endregion
@@ -857,11 +908,43 @@ class Maisapaint:
         self.save.open(self.layermaster.layers.copy())     
 
     def changeDrawName(self, title, tile):
-        self.mainpanel.title = title
-        self.mainpanel.subTitle = tile.getString()  
+        self.drawTitle = title
+        self.drawRepTile = tile.copy()
+        self.updateMainPanelInf()  
+
+    def updateMainPanelInf(self):
+        self.mainpanel.title = self.drawTitle
+        self.mainpanel.subTitle = self.drawRepTile.getString()
 
     def openLoad(self):
         self.load.open()
 
     def loadDraw(self, draw: dict):
         self.layermaster.layers = draw.copy()
+
+    def sendDrawName(self):
+        bus.emit('send-draw-name', self.drawTitle, self.drawSelectorPositions.copy())
+
+    def llegueAlPuntoDeFaltaDeOriginalidadQueNoSeComoNombrarEsteMetodoQueRecibeUnaListaYRegresaPuraMadre(self, asereje: list):
+        self.drawSelectorPositions = asereje.copy()
+
+    def newDraw(self, showMsgBox = False):
+        if showMsgBox:
+            self.msgBox.colorId = 0
+            if not self.msgBox.getYesNo("Nuevo dibujo", "Estás seguro de querer abrir un nuevo dibujo? Perderás tus cambios no guardados"):
+                return
+
+        self.currentDrawState = self.DrawState.NEW
+        self.drawTitle = "Dibujo sin nombre"
+        self.drawSelectorPositions = [14, 1, 15, 1]
+
+        self.drawRepTile = Tile(
+            graph.character(self.drawSelectorPositions[1]),
+            self.drawSelectorPositions[0],
+            self.drawSelectorPositions[2],
+            self.drawSelectorPositions[3]
+        )
+
+        self.layermaster.clear()
+        self.updateMainPanelInf()
+        self.changeState(states.States.DRAW)

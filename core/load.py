@@ -37,6 +37,7 @@ class Load:
 
         def __init__(self, position: Vector2, fileName:str):
 
+            self.fabianPagameLoQueMeDebes = []
             self.currentState = self.DrawSlotStates.EMPTY
             self.colorId = 12
             self.focus = False
@@ -166,6 +167,9 @@ class Load:
                     else:
                         self.dataPanel.subTitleIndent = 19 - (len(str(99999999999)))
                         self.dataPanel.subTitle = graph.foreColor(11) + "99999999999" + graph.Reset.STYLE
+
+                    self.fabianPagameLoQueMeDebes = draw["iconsp"].copy()
+                    
                     self.currentState = self.DrawSlotStates.READY
 
                 except Exception as e:
@@ -199,7 +203,6 @@ class Load:
         self.slotsPanel = Panel("Dibujos", 14, self.position.sum(8,2), Vector2(28, 12))
         self.slotsPanel.subTitleIndent = 10
         
-
     def setSlots(self):
         self.slots.clear()
 
@@ -210,7 +213,6 @@ class Load:
         else:
             self.msgBox.get("Sin carpeta", "No se encontró la carpeta draws, guarde un dibujo para crearla")
             self.isRunning = False
-
 
     def open(self):
         self.setSlots()
@@ -224,7 +226,6 @@ class Load:
             match kInput.getKeyPressed():
                 case 'up':
                     self.select(True)
-
                 case 'down':
                     self.select(False)
                 case 'left':
@@ -241,13 +242,10 @@ class Load:
 
         Print2D.clear()
 
-
     def render(self):
         self.mainPanel.render(True)
         self.renderSlots()
         self.slotsPanel.render()
-
-
 
     def renderSlots(self):
         self.inicio = self.currentPage * self.SLOTS_PER_PAGE
@@ -303,4 +301,4 @@ class Load:
         if self.slots[self.currentSlot].currentState == self.DrawSlot.DrawSlotStates.READY:
             bus.emit("load-draw", self.slots[self.currentSlot].draw["draw"].copy())
             bus.emit("change-name", self.slots[self.currentSlot].title, self.slots[self.currentSlot].tile.copy())
-
+            bus.emit("change-s-r-t-p", self.slots[self.currentPage].fabianPagameLoQueMeDebes.copy())

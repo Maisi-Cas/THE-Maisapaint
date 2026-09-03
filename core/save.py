@@ -3,8 +3,11 @@ from utils.vector2 import Vector2
 from utils.print2d import Print2D
 from core.inputHandler import kInput
 
-# Clases del motor
+# Clases del nucleo
+import core.polla as polla
 from core.emitBus import bus
+
+# Clases del motor
 import engine.graph as graph
 from engine.panel import Panel
 from engine.tile import Tile
@@ -26,7 +29,7 @@ from datetime import datetime
 class Save:
     isRunning: bool
 
-    def __init__(self, colorId, position: Vector2, ):
+    def __init__(self, colorId, position: Vector2):
 
         self.msgBox = MsgBox(position.copy(), 0)
         self.title = ". . ."
@@ -49,8 +52,12 @@ class Save:
         
         self.addsubtitile()
 
+        bus.conect('send-draw-name', self.setDrawName)
+
 
     def open(self, draw: dict):
+        self.getDrawName()
+
         self.isRunning = True
         self.render()
         
@@ -59,6 +66,7 @@ class Save:
 
             match kInput.getKeyPressed():
                 case "accept":
+                    self.sendSRTP()
                     self.save(draw.copy())
                     self.isRunning = False
                 case "up":
@@ -94,7 +102,7 @@ class Save:
         Print2D.coord(self.position.x + 14, self.position.y + 8, ":")
         Print2D.coord(self.position.x + 12, self.position.y + 8, self.tile.getString())
 
-        if self.title == ". . .":
+        if self.blackNameList():
             Print2D.coord(self.position.x + 16, self.position.y + 8, graph.foreColor(14) + self.title + graph.Reset.STYLE)
         else:
             Print2D.coord(self.position.x + 16, self.position.y + 8, graph.foreColor(12) + self.title + graph.Reset.STYLE)
@@ -172,8 +180,9 @@ class Save:
 
     def save(self, draw):
         # Primero revisemos que exite la carpeta
-        if re.search(r'[\\/:*?"<>|]', self.title):
-            self.msgBox.get("Titulo no valido", 'Desafortunadamente el nombre de tu dibujo posee caracteres no validos >>([\\/:*?"<>|])<<')
+        if re.search(r'[\\/:*?"<>|]', self.title) or self.blackNameList():
+            self.msgBox.get("Titulo no valido", 'Desafortunadamente el nombre de tu dibujo posee caracteres no validos >>([\\/:*?"<>|])<< o está en la lista negra')
+            bus.emit('maisapaint-render')
             self.open(draw.copy())
             return
         directory = f"draws/{self.title.replace(" ", "-")}.msp"
@@ -182,6 +191,7 @@ class Save:
                 if self.msgBox.getYesNo("Sobreescribir", f'Se ha encontrado otro archivo con el nombre {f"{self.title.replace(" ", "-")}.json"}, desea sobreescribirlo?'):
                     self.write(draw.copy())
                 else:
+                    bus.emit('maisapaint-render')
                     self.isRunning = True
                     self.open(draw.copy())
                     return
@@ -197,6 +207,7 @@ class Save:
     def write(self, draw):
         directory = f"draws/{self.title.replace(" ", "-")}.msp"
         sonichu = {}
+        sonichu["iconsp"] = [x.currentId for x in self.selectors]
         sonichu["format"] = {"format" : "msp", "version" : 1}
         sonichu["date"] = datetime.now().strftime("%d-%m-%Y %H:%M")
         sonichu["icon"] = [self.tile.character, self.tile.foreColorId, self.tile.backColorId, self.tile.styleId]
@@ -218,6 +229,11 @@ class Save:
 
     def writeReadme(self):
         directory = f"draws/readme.txt"
+        pd = f"Si logras leer esto, tienes mi humor \n{self.title * 10}" if "polla" in self.title.lower() else f"Bravo tu primer dibujo se llama {self.title}"
+
+        if polla.chekUrMonInStr(self.title):
+            pd = "Estoy decepcionado de ti, seguramente\nalguien te dijo sobre el easter Egg"
+
         msg = [
             "Genial estás leyendo esto",
             "Me imagino que es por que probablemente",
@@ -228,8 +244,35 @@ class Save:
             "",
             "Con cariño el creador de MSP",
             "",
-            f"Si logras leer esto, tienes mi humor \n{self.title * 10}" if "polla" in self.title.lower() else f"Bravo tu primer dibujo se llama {self.title}"
+            pd
         ]
 
         with open(directory, "w", encoding="utf-8") as f:
             f.writelines(line + "\n" for line in msg)
+
+    def blackNameList(self):
+        blackList = [
+            "Dibujo sin nombre",
+            ". . ."
+        ]
+
+        for i in blackList:
+            if i == self.title:
+                return True
+
+        return False
+
+    def getDrawName(self):
+        bus.emit("get-draw-name")
+
+    def sendSRTP(self):
+        bus.emit("change-s-r-t-p", [x.currentId for x in self.selectors])
+
+    def setDrawName(self, name: str, selectorPosition: list):
+        self.title = name
+
+        for i in range(len(self.selectors)):
+            selectorPosition[i] = min(max(0, selectorPosition[i]), len(self.selectors[i].ids) - 1)
+            self.selectors[i].currentId = selectorPosition[i]
+
+        self.tile.reset(graph.Characters[self.selectors[1].currentId]["character"], self.selectors[0].currentId, self.selectors[2].currentId, self.selectors[3].currentId)
