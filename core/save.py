@@ -55,7 +55,8 @@ class Save:
         bus.conect('send-draw-name', self.setDrawName)
 
 
-    def open(self, draw: dict):
+    def open(self, draw: dict, drawSize: Vector2):
+        self.drawSize = drawSize.copy()
         self.getDrawName()
 
         self.isRunning = True
@@ -185,7 +186,7 @@ class Save:
             bus.emit('maisapaint-render')
             self.open(draw.copy())
             return
-        directory = f"draws/{self.title.replace(" ", "-")}.msp"
+        directory = f"draws/{self.title.replace(" ", "-")}.{polla.saveFormat}"
         if os.path.exists("draws") and os.path.isdir("draws"):
             if os.path.exists(directory) and os.path.isfile(directory):
                 if self.msgBox.getYesNo("Sobreescribir", f'Se ha encontrado otro archivo con el nombre {f"{self.title.replace(" ", "-")}.json"}, desea sobreescribirlo?'):
@@ -205,10 +206,10 @@ class Save:
             
 
     def write(self, draw):
-        directory = f"draws/{self.title.replace(" ", "-")}.msp"
+        directory = f"draws/{self.title.replace(" ", "-")}.{polla.saveFormat}"
         sonichu = {}
         sonichu["iconsp"] = [x.currentId for x in self.selectors]
-        sonichu["format"] = {"format" : "msp", "version" : 1}
+        sonichu["format"] = {"format" : polla.saveFormat, "version" : 1}
         sonichu["date"] = datetime.now().strftime("%d-%m-%Y %H:%M")
         sonichu["icon"] = [self.tile.character, self.tile.foreColorId, self.tile.backColorId, self.tile.styleId]
         sonichu["layers"] = []
@@ -219,7 +220,8 @@ class Save:
             hatsuneMiku["enable"] = i["enable"]
             hatsuneMiku["draw"] = {}
             for (x,y), (a,b,c,d) in i["draw"].items():
-                hatsuneMiku["draw"][f"{x},{y}"] = [a, b, c, d]
+                if (x > 0 and x <= self.drawSize.x) and (y > 0 and y <= self.drawSize.y): 
+                    hatsuneMiku["draw"][f"{x},{y}"] = [a, b, c, d]
             sonichu["layers"].append(hatsuneMiku)
 
         with open(directory, 'w', encoding='utf-8', ) as f:
@@ -238,7 +240,7 @@ class Save:
             "Genial estás leyendo esto",
             "Me imagino que es por que probablemente",
             "hayas notado un nuevo archivo, aca se guardan",
-            "los dibujos en un formato llamado msp, asi que una cosita,",
+            f"los dibujos en un formato llamado {polla.saveFormat}, asi que una cosita,",
             "de preferencia",
             "NO TOQUES NADA, O TODO SE VA A LA-",
             "",

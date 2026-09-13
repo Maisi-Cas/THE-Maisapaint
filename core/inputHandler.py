@@ -26,7 +26,8 @@ class Handlers:
                 'volume-sub' : lambda: bus.emit('volume', False),
                 'toogle' : lambda: bus.emit('slct-state', 'r'),
                 'toogle-2' : lambda: bus.emit('slct-state', 'l'),
-                'extra-5' : lambda: bus.emit('dropper')
+                'extra-5' : lambda: bus.emit('dropper'),
+                'extra-6' : lambda: bus.emit('toogle-move-mode')
             },
             'select' : {
                 'exit' : lambda: bus.emit('mp-stop'),

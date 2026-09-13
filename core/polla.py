@@ -1,3 +1,5 @@
+import engine.graph as graph
+
 tumamabank = [
     "tu mama",
     "tu mamá",
@@ -6,6 +8,18 @@ tumamabank = [
     "tu progenitora",
     "mi polla"
 ]
+def gayficationString(string, startIndex = 0):
+
+    cadenaHomosexual = ""
+
+    for i in string:
+        cadenaHomosexual += graph.foreColor(startIndex % 15) + i
+        startIndex += 1
+
+    cadenaHomosexual += graph.Reset.STYLE
+
+    return cadenaHomosexual
+
 
 def chekUrMonInStr(string):
     global tumamabank
@@ -15,7 +29,7 @@ def chekUrMonInStr(string):
 
     return False
 
-saveFormat = "maisapt"
+saveFormat = "msxd" # Gracias Suco por el nombre
 
 if __name__ == "__main__":
     dick = {

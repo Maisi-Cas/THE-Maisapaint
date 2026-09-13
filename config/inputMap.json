@@ -21,6 +21,7 @@
     "c" : "extra-3",
     "v" : "extra-4",
     "g" : "extra-5",
+    "b" : "extra-6",
 
     "m" : "volume-add",
     "n" : "volume-sub"

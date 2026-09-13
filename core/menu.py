@@ -97,7 +97,6 @@ class Menu:
 
         self.msp.renderTitle(Vector2(2,25), self.OPTIONNAMES[self.currentId]["color"])
         self.mainPanel.subTitle = self.OPTIONNAMES[self.currentId]["icon"]
-        self.msp.clock.render()
         self.mainPanel.colorId = self.OPTIONNAMES[self.currentId]["color"]
         self.mainPanel.render(True)
         self.renderSug()

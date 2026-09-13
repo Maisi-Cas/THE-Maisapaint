@@ -16,6 +16,15 @@
 	"El fondo es oscuro, pero en ti esa llenarlo de color",
 	"No debes crear un tile oscuro para borrar, simplemente usa la tecla de borrar",
 	"La madre de [Cualquier persona] es tan pero tan gorda...",
-	"... que  necesita 2 cadenas para caber."
+	"... que  necesita 2 cadenas para caber.",
+    "Albion Online es un MMORPG no lineal en el que escribes tu historia sin limitarte a seguir un camino prefijado",
+    "2,810 Lineas de codigo",
+    "Gracias por todo Vector2()",
+    "La santisima trinidad de MAISAPAINT: graph, print2d y vector2",
+    "Tuleperaconlapapaya",
+    "Elige bien tu capa, de momento no las puedes mover",
+    "No hay serie mas perfecta que Avatar: La leyenad de Aang",
+    "Esta es la linea 67 de maisapaint.py :",
+    "self.splashText = rand.choice(json.load(splashTexts)['normal'])"
     ]
 }

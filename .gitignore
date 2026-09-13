@@ -237,4 +237,5 @@ vim.txt
 *~
 try.py
 draws/
-*.maisa
+*.msxd
+config/config.json

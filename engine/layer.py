@@ -30,11 +30,11 @@ class Layer:
     def render(self, flush: bool = False):
         drawString = print2d.getStr(1,1)
         for (x,y),(a,b,c,d) in self.pixels.items():
-        
-            drawString += print2d.getStr(
-                    x + self.margin.x,
-                    y + self.margin.y
-                ) + (graph.ForeColors[a]['color'] + graph.BackColors[b]['color'] + graph.StyleType[c]['style'] + d + graph.Reset.STYLE)
+            if (x > 0 and x <= self.size.x) and (y > 0 and y <= self.size.y): 
+                drawString += print2d.getStr(
+                        x + self.margin.x,
+                        y + self.margin.y
+                    ) + (graph.ForeColors[a]['color'] + graph.BackColors[b]['color'] + graph.StyleType[c]['style'] + d + graph.Reset.STYLE)
             # print2d.coord(
             #     x + self.margin.x,
             #     y + self.margin.y,
@@ -54,7 +54,8 @@ class Layer:
 
 class LayerMaster:
     def __init__(self, colorId: int, margin: Vector2, size: Vector2):
-        nombres = [
+        self.sucoX = lambda value : " " * (2 - len(str(value)))
+        self.nombres = [
             'El vacio',
             'El abismo',
             'Lienzo',
@@ -112,7 +113,7 @@ class LayerMaster:
         self.layers: list[dict] = []
         for i in range(self.size.y):
             hatsuneMiku = {}
-            hatsuneMiku["name"] = f"{i + 1}|{rand.choice(nombres).upper()}"
+            hatsuneMiku["name"] = f"{i+1}{self.sucoX(i+1)}>{rand.choice(self.nombres)}"
             hatsuneMiku["enable"] = True
             hatsuneMiku["draw"] = {}
             self.layers.insert(0, hatsuneMiku)
@@ -121,6 +122,16 @@ class LayerMaster:
         self.panel = Panel("Capas", self.colorId, self.margin - 1, self.size.copy())
         
         bus.conect("lyr-slct", self.select)
+
+
+    def reset(self):
+        self.layers.clear()
+        for i in range(self.size.y):
+            hatsuneMiku = {}
+            hatsuneMiku["name"] = f"{i+1}{self.sucoX(i+1)}>{rand.choice(self.nombres)}"
+            hatsuneMiku["enable"] = True
+            hatsuneMiku["draw"] = {}
+            self.layers.insert(0, hatsuneMiku)
 
     def connect(self, layer: Layer):
         if isinstance(layer, Layer):
@@ -235,6 +246,7 @@ class LayerMaster:
         return maxiTecladoso
         
     def fill(self, position: Vector2, tile: Tile):
+        addXp = 0
         flag = False
         p = position.copy()
         new = tile.getList()
@@ -252,7 +264,11 @@ class LayerMaster:
         eichiroOda = deque([[p.x, p.y]])
         
         while eichiroOda:
-            
+            addXp += 1
+            if addXp == 5:
+                addXp = 0
+                bus.emit("add-xp", 1)
+
             p.x, p.y = eichiroOda.popleft()
             
             if not flag:
@@ -291,3 +307,13 @@ class LayerMaster:
             return list(self.layers[self.currentId]["draw"][(postion.x , postion.y)])
         else:
             return []
+
+    def moveDraw(self, direction:Literal['u', 'd', 'l', 'r']):
+        xd = lambda value, direction : value if not direction in ['l', 'r'] else (value + 1 if direction == 'r' else value - 1)
+        yd = lambda value, direction : value if not direction in ['u', 'd'] else (value + 1 if direction == 'd' else value - 1)
+
+        pivot = {}
+        for (x, y), (a, b, c, d) in self.layers[self.currentId]["draw"].items():
+            pivot[(xd(x, direction), yd(y, direction))] = (a, b, c, d)
+
+        self.layers[self.currentId]["draw"] = pivot.copy()

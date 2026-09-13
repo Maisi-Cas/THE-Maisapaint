@@ -40,6 +40,7 @@ from ui.clock import Clock
 from ui.tileSelector import TileSelector
 from ui.textBox import TextBox
 from ui.selector import ColorSelector, CharacterSelector, StyleSelector
+from ui.level import Level
 
 
 # CLASE PRINCIPAL, LA CLASE DE CLASES, EL DIOS DE LA CLASE
@@ -99,6 +100,7 @@ class Maisapaint:
                     [ik('extra-2'), "ALTERNAR DIBUJO RAPIDO"],
                     [ik('extra-4'), "CUBETA"],
                     [ik('extra-5'), "CUENTAGOTAS"],
+                    [ik('extra-6'), "ALTERNAR MODO DE MOVIMIENTO"],
                     [f"{ik('volume-sub')} {ik('volume-add')}", "VOLUMEN"],
                     [ik('exit'), "MENU"]
                     
@@ -216,9 +218,9 @@ class Maisapaint:
                 f'T. DIBUJADOS : {self.easterEgg()}',
                 f'CAPA : {graph.ForeColors[3]['color']}{self.father.layermaster.layers[self.father.layermaster.currentId]["name"]}{graph.Reset.STYLE}',
                 f'MODO : {graph.ForeColors[self.getStateColor()]['color']}{states.current.name}{graph.Reset.STYLE}',
-                f'V : {graph.ForeColors[9]['color']}{self.father.version}{graph.Reset.STYLE}',
-                f'MEMORIA : {graph.ForeColors[5]['color']}{self.memory} MB{graph.Reset.STYLE}'
-                
+                f'MOVIMIENTO : {graph.foreColor(15)}{graph.backColor(8) + "DIBUJO" if self.father.moveMode else graph.backColor(4) + "CURSOR"}{graph.Reset.STYLE}',
+                f'MEMORIA : {graph.ForeColors[5]['color']}{self.memory} MB{graph.Reset.STYLE}',
+                f'V : {graph.ForeColors[self.father.versionColor]['color']}{self.father.version}{graph.Reset.STYLE}',
             ]
             
             for i in range(len(strings)):
@@ -269,6 +271,7 @@ class Maisapaint:
         LOADED = 1
 
     def __init__(self):
+        self.moveMode = False
         self.currentDrawState = self.DrawState.NEW
         self.drawTitle = "Dibujo sin nombre"
         self.drawSelectorPositions = [14, 1, 15, 1]
@@ -280,9 +283,10 @@ class Maisapaint:
             self.drawSelectorPositions[3]
         )
 
-        self.currentState = 0
+        self.currentState = 1
         self.stateList = list(states.States)
-        self.version = '(InDev) a-2'
+        self.versionColor = 10
+        self.version = '1.0.0 BUG'
         self.canRun = True
         self.fastDrawMode = False
         self.fastDrawTool = True
@@ -397,6 +401,14 @@ class Maisapaint:
         self.save = Save(self.superPanel.colorId, self.menu.position.sub(7,1))
         self.load = Load(self.superPanel.colorId, self.menu.position.sub(6,1))
 
+        # Level
+        self.lvl = Level(
+            Vector2(
+                self.keytable.table.margin.x + 21,
+                self.keytable.table.margin.y + self.keytable.table.height + 2)
+        )
+        self.readConfig()
+
         # Conectar señales
         bus.conect('draw-tile', self.drawTile)
         bus.conect('mp-stop', self.openMenu)
@@ -421,6 +433,8 @@ class Maisapaint:
         bus.conect('get-draw-name', self.sendDrawName)
         bus.conect('change-s-r-t-p', self.llegueAlPuntoDeFaltaDeOriginalidadQueNoSeComoNombrarEsteMetodoQueRecibeUnaListaYRegresaPuraMadre)
         bus.conect('maisapaint-render', self.renderInterface)
+        bus.conect('move-curse', self.moveInput)
+        bus.conect('toogle-move-mode', self.toogleMoveMode)
 
     # region Run  
     # Funcion que corre el programa    
@@ -499,6 +513,9 @@ class Maisapaint:
                 self.curse.render()
                 self.clock.render()
                 self.audio.render()
+                self.info.render()
+                self.lvl.render()
+                self.info.render()
                 
             case states.Flags.DRAW:
                 self.oh.render()
@@ -507,17 +524,21 @@ class Maisapaint:
                 self.layermaster.renderDraws()
                 self.curse.render()
                 self.clock.render()
+                self.lvl.render()
+                self.info.render()
             
             case states.Flags.MOVE:
                 self.mainpanel.render(True)
                 self.layermaster.renderDraws() 
                 self.curse.render()
                 self.clock.render()
+                self.info.render()
             
             case states.Flags.CTILE:
                 self.tileSelector.render()
                 self.curse.render()
                 self.clock.render()
+                self.info.render()
             
             case states.Flags.ULAYER:
                 self.mainpanel.render(True)
@@ -525,6 +546,7 @@ class Maisapaint:
                 self.layermaster.renderDraws()
                 self.curse.render()
                 self.clock.render()
+                self.info.render()
             
             case states.Flags.PASS:
                 pass
@@ -545,16 +567,21 @@ class Maisapaint:
                 self.curse.render()
                 self.clock.render()
                 self.audio.render()
+                self.info.render()
+                self.lvl.render()
+                self.info.render()
             
             case states.Flags.SELECTION:
                 self.renderSelectors()
                 self.clock.render()
+                self.info.render()
             
             case states.Flags.CTILE:
                 self.tileSelector.render()
                 self.renderSelectors()
                 self.curse.render()
                 self.clock.render()
+                self.info.render()
             
             case states.Flags.PASS:
                 pass
@@ -574,16 +601,21 @@ class Maisapaint:
                 self.oh.render()
                 self.clock.render() 
                 self.audio.render()
+                self.info.render()
+                self.lvl.render()
+                self.info.render()
 
             case states.Flags.CLAYER:
                 self.layermaster.render()
                 self.clock.render()
+                self.info.render()
                 
             case states.Flags.ULAYER:
                 self.mainpanel.render(True)
                 self.layermaster.render()
                 self.layermaster.renderDraws()
                 self.clock.render()
+                self.info.render()
 
             case states.Flags.PASS:
                 pass
@@ -660,6 +692,8 @@ class Maisapaint:
         states.currentFlag = states.Flags.DRAW
         self.layermaster.addpixel(self.curse.position.copy(), self.tileSelector.tiles[self.tileSelector.currenTile].copy())
         self.oh.add(self.tileSelector.tiles[self.tileSelector.currenTile].foreColorId)
+
+        bus.emit("add-xp", 1)
     
     # Borra owo    
     def eraseTile(self, key = False):
@@ -675,17 +709,18 @@ class Maisapaint:
         self.menu.open()
 
     def stop(self):
+        self.writeConfig()
         self.msgBox.colorId = 0
         self.canRun = not self.msgBox.getYesNo('Confirmar', 'Esta seguro de querer salir de The#Maisapaint?, perderás cambios no guardados')
 
     def selectState(self, direction: Literal['l', 'r'] = 'r'):
         match direction:
-            case 'l':
+            case 'r':
                 if self.currentState == 0:
                     self.currentState = len(self.stateList) - 1 - 1 # Quitar el -1 para desbloquear la camara
                 else:
                     self.currentState -= 1
-            case 'r':
+            case 'l':
                 if self.currentState == len(self.stateList) - 1 - 1: # Lo mismo que dice arriba 
                     self.currentState = 0
                 else:
@@ -802,6 +837,8 @@ class Maisapaint:
             
     # Cuando dibujas, se ejecuta esta funcion    
     def fastDraw(self, *args, **kwargs):
+        if self.moveMode:
+            return
         if self.fastDrawMode:
             if self.fastDrawTool:
                 self.drawTile()
@@ -905,7 +942,8 @@ class Maisapaint:
             states.currentFlag = states.Flags.CTILE
 
     def openSave(self):
-        self.save.open(self.layermaster.layers.copy())     
+        self.save.open(self.layermaster.layers.copy(), self.draw.size.copy()) 
+    
 
     def changeDrawName(self, title, tile):
         self.drawTitle = title
@@ -929,6 +967,7 @@ class Maisapaint:
         self.drawSelectorPositions = asereje.copy()
 
     def newDraw(self, showMsgBox = False):
+
         if showMsgBox:
             self.msgBox.colorId = 0
             if not self.msgBox.getYesNo("Nuevo dibujo", "Estás seguro de querer abrir un nuevo dibujo? Perderás tus cambios no guardados"):
@@ -945,6 +984,37 @@ class Maisapaint:
             self.drawSelectorPositions[3]
         )
 
-        self.layermaster.clear()
+        self.layermaster.reset()
         self.updateMainPanelInf()
         self.changeState(states.States.DRAW)
+
+    def moveInput(self, direction: Literal['l', 'r', 'u', 'd'] = 'r'):
+        if self.moveMode:
+            self.layermaster.moveDraw(direction)
+
+        else:
+            self.curse.move(direction)
+
+    def toogleMoveMode(self):
+        self.moveMode = not self.moveMode
+        self.info.render()
+
+    def readConfig(self):
+        with open("config/config.json", "r") as f:
+            data = json.load(f)
+
+            self.audio.setVolume(data['volume-level'])
+            self.lvl.setLvl(data['lvl'])
+            self.lvl.setXp(data['xp'])
+
+    def writeConfig(self):
+        with open("config/config.json", "w") as f:
+            json.dump(
+                {
+                    'volume-level' : self.audio.volume,
+                    'xp' : self.lvl.xp,
+                    'lvl' : self.lvl.lvl
+                },
+                f,
+                indent=4
+            )

@@ -5,8 +5,7 @@ class _Reset:
     def __init__(self):
         self.STYLE = Style.RESET_ALL
         self.BACK = Back.RESET
-        self.FORE = Fore.RESET
-        
+        self.FORE = Fore.RESET       
 
 init()
 
@@ -87,6 +86,7 @@ StyleType = {
 }
 
 def foreColor(id: int):
+
     id = min(max(0, id), 15)
     return ForeColors[id]['color']
 
@@ -99,5 +99,10 @@ def character(id: int):
 
     id = min(max(0, id), 24)
     return Characters[id]['character']
+
+def backColor(id: int):
+
+    id = min(max(0, id), 15)
+    return BackColors[id]['color']
 
 Reset = _Reset()

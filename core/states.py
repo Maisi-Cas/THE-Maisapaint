@@ -24,4 +24,4 @@ isRendering:bool = True
 clockIsRendering:bool = False
 isMsgBoxOn: bool = False
 
-clockNInfoRender: bool = False
+clockNInfoRender: bool = False 

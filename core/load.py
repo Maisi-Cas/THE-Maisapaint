@@ -37,6 +37,7 @@ class Load:
 
         def __init__(self, position: Vector2, fileName:str):
 
+            self.fileName = fileName
             self.fabianPagameLoQueMeDebes = []
             self.currentState = self.DrawSlotStates.EMPTY
             self.colorId = 12
@@ -55,6 +56,7 @@ class Load:
 
 
         def render(self):
+            sucoIX = lambda : " " if self.title < 22 else ""
 
             match self.currentState:
                 case self.DrawSlotStates.EMPTY:
@@ -72,6 +74,8 @@ class Load:
 
                 if self.currentState == self.DrawSlotStates.READY:
                     self.setColor(2)
+
+                # Poner codigo aca
 
             else:
                 self.dataPanel.type = "normal"
@@ -128,7 +132,7 @@ class Load:
         def setFile(self, file: str):
             
             self.draw.clear()
-            directory = f"draws/{file}.msp" 
+            directory = f"draws/{file}.{polla.saveFormat}" 
             if os.path.exists(directory) and os.path.isfile(directory):
 
                 try:
@@ -154,6 +158,7 @@ class Load:
                         self.draw["draw"].append(alex.copy())
 
                     self.title = file.replace("-", " ")
+                    self.title = self.title[:22]
 
                     holaSoyTransSans = False
                     for i in polla.tumamabank:
@@ -196,7 +201,7 @@ class Load:
         self.title = ". . ."
         self.currentSlot = 0
         self.position = position.copy()
-        self.mainPanel = Panel("Cargar", colorId, position.copy(), Vector2(44, 15))
+        self.mainPanel = Panel("Cargar", colorId, position.copy(), Vector2(44, 17))
         self.tilePanel = Panel("", 12, self.position.sum(10,6),Vector2(1,1))
         self.titlePanel = Panel("Nombre", 12, self.position.sum(14,6), Vector2(21,1))
         self.slots = []
@@ -207,7 +212,7 @@ class Load:
         self.slots.clear()
 
         if os.path.exists("draws") and os.path.isdir("draws"):
-            for archivo in Path("draws").glob("*.msp"):
+            for archivo in Path("draws").glob(f"*.{polla.saveFormat}"):
                 self.slots.append(self.DrawSlot(Vector2(1,1), archivo.stem))
             self.isRunning = True
         else:
@@ -237,6 +242,8 @@ class Load:
                 case 'accept':
                     self.load()
                     self.isRunning = False
+                case 'extra-1':
+                    self.deleteDraw()
                 case _:
                     pass
 
@@ -246,6 +253,7 @@ class Load:
         self.mainPanel.render(True)
         self.renderSlots()
         self.slotsPanel.render()
+        self.renderIndications()
 
     def renderSlots(self):
         self.inicio = self.currentPage * self.SLOTS_PER_PAGE
@@ -275,6 +283,10 @@ class Load:
         self.update()
 
     def selectPage(self, boo):
+        if not self.slots:
+            self.update()
+            return
+        
         if not boo:
             self.currentPage += 1
             self.currentSlot += self.SLOTS_PER_PAGE
@@ -302,3 +314,33 @@ class Load:
             bus.emit("load-draw", self.slots[self.currentSlot].draw["draw"].copy())
             bus.emit("change-name", self.slots[self.currentSlot].title, self.slots[self.currentSlot].tile.copy())
             bus.emit("change-s-r-t-p", self.slots[self.currentPage].fabianPagameLoQueMeDebes.copy())
+
+    def deleteDraw(self):
+        if not self.msgBox.getYesNo("Estas seguro?", f"Realmente deseas borrar {self.slots[self.currentSlot].title}?"):
+            return
+
+        directory = f"draws/{self.slots[self.currentSlot].fileName}.{polla.saveFormat}"
+        self.slots.pop(self.currentSlot)
+        os.remove(directory)
+
+        self.setSlots()
+        self.update()
+        bus.emit('maisapaint-render')
+
+    def renderIndications(self):
+        cic = lambda action, color : graph.foreColor(color) + kInput.getKey(action).upper() + graph.Reset.STYLE
+        Print2D.coord(
+            self.position.x + 2,
+            self.position.y + 17,
+            f"[{cic('left', 14)}][{cic('right', 14)}] SELECCIONAR PAGINA"
+        )
+        Print2D.coord(
+            self.position.x + 2,
+            self.position.y + 2,
+            f"[{cic('accept', 4)}] ABRIR [{cic('cancel', 0)}] SALIR [{cic('extra-1', 10)}] BORRAR"
+        )
+        Print2D.coord(
+            self.position.x + 2,
+            self.position.y + 18,
+            f"[{cic('up', 14)}][{cic('down', 14)}] SELECCIONAR ARCHIVO"
+        )

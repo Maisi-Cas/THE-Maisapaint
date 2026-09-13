@@ -61,9 +61,14 @@ class Audio:
         barstring += graph.StyleType[num]['style']
         for i in range(10):
             if ((i +1 ) * 0.1) <= self.volume:
-                barstring += "#"
+                barstring += "█"
             else:
-                barstring += " "
+                barstring += "-"
         barstring += graph.Reset.STYLE 
         
         print2d.coord(self.position.x, self.position.y, f'VOLUME[{barstring}]')
+
+    def setVolume(self, value):
+        self.volume = value
+            
+        self.volume = max(0, min(self.volume, 1))

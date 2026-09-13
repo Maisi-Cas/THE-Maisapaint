@@ -19,7 +19,6 @@ class Curse:
         self.isVisible = True
         self.colorId = 12
         self.curse = '○'
-        bus.conect('move-curse', self.move)
         bus.conect('hide-curse', self.hideNShow)
         
     def render(self):
