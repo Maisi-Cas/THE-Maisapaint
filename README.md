@@ -1,5 +1,3 @@
-<p align="center"><img src="images/icon.png" width="30">===<img src="images/icon.png" width="30">===<img src="images/icon.png" width="30">===<img src="images/icon.png" width="30">===<img src="images/icon.png" width="30">===<img src="images/icon.png" width="30"></p>
-
 <h1 align="center">
 THE-Maisapaint
 </h1>
