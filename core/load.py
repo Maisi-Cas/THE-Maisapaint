@@ -26,16 +26,25 @@ from pathlib import Path
 import random as rand
 import core.polla as polla
 
+# (Nota del Dev 1) - Carajo, no quiero comentar esto
+
 class Load:
 
     class DrawSlot:
 
+        # Esta clase es la que almacena los datos, asi es, cuando abres la seccion de guardado, todo esto se va a la memoria
+
         class DrawSlotStates(Enum):
+
+            # Estados del dibujo
+
             EMPTY = 0
             READY = 1
             UNREADABLE = 2
 
         def __init__(self, position: Vector2, fileName:str):
+
+            #
 
             self.fileName = fileName
             self.fabianPagameLoQueMeDebes = []

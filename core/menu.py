@@ -30,7 +30,8 @@ class Menu:
         {"color" : 0, "name": "Salir", "icon" : "<"},
         {"color": 10, "name": "Nuevo Dibujo", "icon" : "+"},
         {"color" : 6, "name": "Cargar", "icon" : "^"},
-        {"color" : 4, "name": "Guardar", "icon" : "v"}
+        {"color" : 4, "name": "Guardar", "icon" : "v"},
+        {"color" : 14, "name": "Configuracion", "icon" : "*"}
     ]
 
     def __init__(self, position: Vector2, colorId: int, msp):

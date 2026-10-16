@@ -1,12 +1,23 @@
+# Clases del nucleo
 from core.emitBus import bus
 import core.states as states
+
+# Clases utiles
+from utils.print2d import Print2D as print2d
+
+# Librerias de Python
 import json
 import msvcrt
-from utils.print2d import Print2D as print2d
+
+# Esta clase se encarga de gestionar la entrada del teclado y emitir eventos segun el estado
 
 class Handlers:
     def __init__(self):
+
+        # Diccionario con todas las acciones ya vinculadas
+
         self.handlers = {
+
             'draw' : {
                 'up' : lambda: bus.emit('move-curse', 'u'),
                 'down' : lambda: bus.emit('move-curse', 'd'),
@@ -29,6 +40,7 @@ class Handlers:
                 'extra-5' : lambda: bus.emit('dropper'),
                 'extra-6' : lambda: bus.emit('toogle-move-mode')
             },
+
             'select' : {
                 'exit' : lambda: bus.emit('mp-stop'),
                 'up': lambda: bus.emit('slct-move', 'u'),
@@ -44,6 +56,7 @@ class Handlers:
                 'toogle' : lambda: bus.emit('slct-state', 'r'),
                 'toogle-2' : lambda: bus.emit('slct-state', 'l')
             },
+
             'layer' : {
                 'up' : lambda: bus.emit('lyr-slct', 'u'),
                 'down' : lambda: bus.emit('lyr-slct', 'd'),
@@ -57,13 +70,17 @@ class Handlers:
                 'toogle' : lambda: bus.emit('slct-state', 'r'),
                 'toogle-2' : lambda: bus.emit('slct-state', 'l')
             },
+
             'camera' : {
                 'toogle' : lambda: bus.emit('slct-state', 'r'),
                 'toogle-2' : lambda: bus.emit('slct-state', 'l')
             }
+            
         }
         
     def inputHandler(self):
+
+        # Elije que diccionario usar segun el estado
         
         key = ''
         action = _kInput.get()
@@ -77,36 +94,56 @@ class Handlers:
                 key = 'layer'
             case states.States.CAMERA:
                 key = 'camera'
+
+        # Emite la señal
             
         if action in self.handlers[key]:
             self.handlers[key][action]()
         else:
+
+            # En caso de que la tecla no esté en los diccionarios, esta flag impide que se renderize la interfaz
+
             states.currentFlag = states.Flags.PASS
-        bus.emit('clock-visible', True)
             
     def getKey(self, value: str = 'accept') -> str:
+
+        # Regresa la clave de una accion, o mejor dicho, la tecla
+
         for i, j in _kInput.inputMap.items():
             if j == value:
                 return i
 
     def getKeyPressed(self) -> str:
+
+        # Lee el teclado y regresa el nombre de la accion
+
         return _kInput.get()
 
 class Input:
     
     def __init__(self):
-        #Esto es para la lectura del JSON
+
+        # Esto es para la lectura del JSON
+
         self.inputMap = {}
         with open('config/inputMap.json', 'r') as inputMap:
             self.inputMap = json.load(inputMap)
         
     def get(self):
+
+        # El nivel mas bajo de lectura
+        # Primero detecta que tecla se pulso para regresar la accion asignada dentro del diccionario
+
         try:
             action = msvcrt.getch().decode('utf-8').lower()
             if action in self.inputMap:
                 return self.inputMap[action]
         except UnicodeDecodeError:
             pass
-        
+# No usar esto
 _kInput = Input()
+
+# Usar esto
 kInput = Handlers()
+
+# Siento que esto es inecesario, solo que esta fue de las primeras clases de MSP, asi que bueno

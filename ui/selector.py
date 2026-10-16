@@ -183,3 +183,7 @@ class StyleSelector(Selector):
                     self.currentId = 0
             case _:
                 pass
+    
+class LockedColorSelector(ColorSelector):
+
+    pass

@@ -239,3 +239,5 @@ try.py
 draws/
 *.msxd
 config/config.json
+versions/
+e.py
